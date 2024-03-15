@@ -1,28 +1,54 @@
-<UI version="4.0" >
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
  <class>DMXProjectClass</class>
- <widget class="QMainWindow" name="DMXProjectClass" >
-  <property name="objectName" >
-   <string notr="true">DMXProjectClass</string>
-  </property>
-  <property name="geometry" >
+ <widget class="QMainWindow" name="DMXProjectClass">
+  <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>400</height>
+    <width>1043</width>
+    <height>627</height>
    </rect>
   </property>
-  <property name="windowTitle" >
+  <property name="windowTitle">
    <string>DMXProject</string>
-  </property>  <widget class="QMenuBar" name="menuBar" />
-  <widget class="QToolBar" name="mainToolBar" />
-  <widget class="QWidget" name="centralWidget" />
-  <widget class="QStatusBar" name="statusBar" />
+  </property>
+  <widget class="QWidget" name="centralWidget"/>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1043</width>
+     <height>26</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuChoisir">
+    <property name="title">
+     <string>Choisir</string>
+    </property>
+    <addaction name="actionConfigurer_une_sc_ne"/>
+   </widget>
+   <addaction name="menuChoisir"/>
+  </widget>
+  <widget class="QToolBar" name="mainToolBar">
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <action name="actionConfigurer_une_sc_ne">
+   <property name="text">
+    <string>Configurer une scène</string>
+   </property>
+  </action>
  </widget>
- <layoutDefault spacing="6" margin="11" />
- <pixmapfunction></pixmapfunction>
+ <layoutdefault spacing="6" margin="11"/>
  <resources>
-   <include location="DMXProject.qrc"/>
+  <include location="DMXProject.qrc"/>
  </resources>
  <connections/>
-</UI>
+</ui>
