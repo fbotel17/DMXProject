@@ -67,11 +67,17 @@ void DMXProject::on_actionCreer_une_sc_ne_triggered()
 {
 	ui.stackedWidget->setCurrentIndex(0);
 }
+
 void DMXProject::on_actionConfigurer_une_sc_ne_2_triggered()
 {
+	afficherEquipements();
 	ui.stackedWidget->setCurrentIndex(1);
 }
 
+void DMXProject::on_actionAjouter_un_equipement_triggered()
+{
+	ui.stackedWidget->setCurrentIndex(2);
+}
 
 void DMXProject::afficherScenes()
 {
@@ -118,16 +124,16 @@ void DMXProject::afficherEquipements()
 	// Exécuter une requête pour récupérer tous les équipements existants
 	QSqlQuery query("SELECT nom FROM Equipement");
 
-	// Vérifier si le widget conteneur a un layout associé
-	if (!ui.widgetEquipements->layout()) {
-		// Si le widget conteneur n'a pas de layout, créer un QVBoxLayout et l'assigner au widget
-		QVBoxLayout *layout = new QVBoxLayout(ui.widgetEquipements);
-		ui.widgetEquipements->setLayout(layout);
+	// Récupérer le layout pour les équipements
+	QVBoxLayout *layoutEquipements = qobject_cast<QVBoxLayout*>(ui.verticalLayoutEquipements->layout());
+	if (!layoutEquipements) {
+		qDebug() << "Erreur : le layout des équipements est invalide.";
+		return;
 	}
 
-	// Effacer le contenu existant du widget conteneur
+	// Effacer le contenu existant du layout
 	QLayoutItem *child;
-	while ((child = ui.widgetEquipements->layout()->takeAt(0)) != nullptr) {
+	while ((child = layoutEquipements->takeAt(0)) != nullptr) {
 		delete child->widget();
 		delete child;
 	}
@@ -138,8 +144,29 @@ void DMXProject::afficherEquipements()
 
 		// Créer une case à cocher pour l'équipement
 		QCheckBox *checkBox = new QCheckBox(nomEquipement);
-		// Ajouter la case à cocher au QVBoxLayout
-		ui.widgetEquipements->layout()->addWidget(checkBox);
+		// Ajouter la case à cocher au layout des équipements
+		layoutEquipements->addWidget(checkBox);
 	}
 }
+
+void DMXProject::on_buttonEquip_clicked()
+{
+	QString nomEquipement = ui.nomEquipEdit->text();
+	QString adresseEquipement = ui.adresseEquipEdit->text();
+	int nbCanaux = ui.nbCannauxEdit->text().toInt(); // Convertir le texte en entier
+
+	QSqlQuery query;
+	query.prepare("INSERT INTO Equipement (nom, adresse, nbCanal) VALUES (:nom, :adresse, :nbCanal)");
+	query.bindValue(":nom", nomEquipement);
+	query.bindValue(":adresse", adresseEquipement);
+	query.bindValue(":nbCanal", nbCanaux);
+
+	if (query.exec()) {
+		qDebug() << "Équipement inséré avec succès!";
+	}
+	else {
+		qDebug() << "Erreur lors de l'insertion de l'équipement:" << query.lastError().text();
+	}
+}
+
 
