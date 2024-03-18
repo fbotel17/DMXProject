@@ -1,7 +1,7 @@
 #include "DMXProject.h"
 #include <QSqlDatabase>
 #include <QtSql>
-
+#include <QRadioButton>
 #include <QLabel>
 #include <QLineEdit>
 #include <QCheckBox>
@@ -9,6 +9,7 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QListWidgetItem> // Ajoutez cette ligne
+#include <QScrollArea>
 
 
 
@@ -32,7 +33,8 @@ DMXProject::DMXProject(QWidget *parent)
 	
 	// Afficher toutes les scènes existantes
 	afficherScenes();
-	afficherEquipements(); // Assurez-vous que cette ligne est bien présente
+	afficherEquipements(); 
+	afficherScenesCheckbox();
 }
 
 DMXProject::~DMXProject()
@@ -71,6 +73,7 @@ void DMXProject::on_actionCreer_une_sc_ne_triggered()
 void DMXProject::on_actionConfigurer_une_sc_ne_2_triggered()
 {
 	afficherEquipements();
+	afficherScenesCheckbox();
 	ui.stackedWidget->setCurrentIndex(1);
 }
 
@@ -124,16 +127,24 @@ void DMXProject::afficherEquipements()
 	// Exécuter une requête pour récupérer tous les équipements existants
 	QSqlQuery query("SELECT nom FROM Equipement");
 
+	// Créer un widget de défilement pour contenir le layout des équipements
+	QScrollArea *scrollArea = new QScrollArea;
+	QWidget *scrollWidget = new QWidget;
+	QVBoxLayout *layoutEquipements = new QVBoxLayout(scrollWidget);
+	scrollWidget->setLayout(layoutEquipements);
+	scrollArea->setWidget(scrollWidget);
+	scrollArea->setWidgetResizable(true);
+
 	// Récupérer le layout pour les équipements
-	QVBoxLayout *layoutEquipements = qobject_cast<QVBoxLayout*>(ui.verticalLayoutEquipements->layout());
-	if (!layoutEquipements) {
+	QVBoxLayout *mainLayout = qobject_cast<QVBoxLayout*>(ui.verticalLayoutEquipements->layout());
+	if (!mainLayout) {
 		qDebug() << "Erreur : le layout des équipements est invalide.";
 		return;
 	}
 
-	// Effacer le contenu existant du layout
+	// Effacer le contenu existant du layout principal
 	QLayoutItem *child;
-	while ((child = layoutEquipements->takeAt(0)) != nullptr) {
+	while ((child = mainLayout->takeAt(0)) != nullptr) {
 		delete child->widget();
 		delete child;
 	}
@@ -147,7 +158,11 @@ void DMXProject::afficherEquipements()
 		// Ajouter la case à cocher au layout des équipements
 		layoutEquipements->addWidget(checkBox);
 	}
+
+	// Ajouter le widget de défilement au layout principal
+	mainLayout->addWidget(scrollArea);
 }
+
 
 void DMXProject::on_buttonEquip_clicked()
 {
@@ -170,3 +185,78 @@ void DMXProject::on_buttonEquip_clicked()
 }
 
 
+
+
+void DMXProject::afficherScenesCheckbox()
+{
+	// Connexion à la base de données
+	QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
+	db.setHostName("192.168.64.213");
+	db.setDatabaseName("testDMX");
+	db.setUserName("root");
+	db.setPassword("root");
+
+	if (!db.open()) {
+		qDebug() << "Échec de la connexion à la base de données.";
+		return;
+	}
+
+	// Exécuter une requête pour récupérer tous les équipements existants
+	QSqlQuery query("SELECT nom FROM Scene");
+
+	// Créer un widget de défilement pour contenir le layout des scènes
+	QScrollArea *scrollArea = new QScrollArea;
+	QWidget *scrollWidget = new QWidget;
+	QVBoxLayout *layoutScenes = new QVBoxLayout(scrollWidget);
+	scrollWidget->setLayout(layoutScenes);
+	scrollArea->setWidget(scrollWidget);
+	scrollArea->setWidgetResizable(true);
+
+	// Récupérer le layout pour les scènes
+	QVBoxLayout *mainLayout = qobject_cast<QVBoxLayout*>(ui.verticalLayoutScenes->layout());
+	if (!mainLayout) {
+		qDebug() << "Erreur : le layout des scènes est invalide.";
+		return;
+	}
+
+	// Effacer le contenu existant du layout principal
+	QLayoutItem *child;
+	while ((child = mainLayout->takeAt(0)) != nullptr) {
+		delete child->widget();
+		delete child;
+	}
+
+	// Garder une liste de toutes les cases à cocher
+	QList<QCheckBox *> checkBoxes;
+
+	// Parcourir les résultats de la requête et ajouter chaque scène en tant que case à cocher
+	while (query.next()) {
+		QString nomScene = query.value(0).toString();
+
+		// Créer une case à cocher pour la scène
+		QCheckBox *checkBox = new QCheckBox(nomScene);
+		// Ajouter la case à cocher au layout des scènes
+		layoutScenes->addWidget(checkBox);
+		checkBoxes.append(checkBox); // Ajouter la case à cocher à la liste
+	}
+
+	// Définir une largeur fixe pour le widget de défilement
+	scrollArea->setFixedWidth(200); // Vous pouvez ajuster cette valeur selon vos besoins
+
+	// Ajouter le widget de défilement au layout principal
+	mainLayout->addWidget(scrollArea);
+
+	// Connecter le signal toggled() de chaque case à cocher à une fonction de gestion
+	for (QCheckBox *checkBox : checkBoxes) {
+		connect(checkBox, &QCheckBox::toggled, [this, checkBoxes, checkBox](bool checked) {
+			if (checked) {
+				// Désélectionner toutes les autres cases à cocher sauf celle qui vient d'être cochée
+				for (QCheckBox *otherCheckBox : checkBoxes) {
+					if (otherCheckBox != checkBox) {
+						otherCheckBox->setChecked(false);
+					}
+				}
+			}
+		});
+	}
+}

@@ -12,6 +12,7 @@ public:
     ~DMXProject();
 	void afficherScenes();
 	void afficherEquipements();
+	void afficherScenesCheckbox();
 
 
 public slots:
