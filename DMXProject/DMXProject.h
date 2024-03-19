@@ -13,6 +13,7 @@ public:
 	void afficherScenes();
 	void afficherEquipements();
 	void afficherScenesCheckbox();
+	void createChannelLabelsAndLineEdits(int channelCount, int numCanal);
 
 
 public slots:
@@ -22,6 +23,8 @@ public slots:
 	
 	void on_pushButtonValider_clicked();
 	void on_buttonEquip_clicked();
+	void on_validateButtonEquip_clicked();
+
 
 
 private:

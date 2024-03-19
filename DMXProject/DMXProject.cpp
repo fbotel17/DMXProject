@@ -19,7 +19,7 @@ DMXProject::DMXProject(QWidget *parent)
     ui.setupUi(this);
 	QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
 	db.setHostName("192.168.64.213");
-	db.setDatabaseName("testDMX");
+	db.setDatabaseName("testCodeDMX");
 	db.setUserName("root");
 	db.setPassword("root");
 
@@ -47,7 +47,7 @@ void DMXProject::on_pushButtonValider_clicked()
 
 	// Exécuter une requête SQL pour insérer les données dans la table scene
 	QSqlQuery query;
-	query.prepare("INSERT INTO Scene (nom) VALUES (:nom)");
+	query.prepare("INSERT INTO scene (nom) VALUES (:nom)");
 	query.bindValue(":nom", nomScene);
 
 	if (query.exec()) {
@@ -84,20 +84,10 @@ void DMXProject::on_actionAjouter_un_equipement_triggered()
 
 void DMXProject::afficherScenes()
 {
-	// Connexion à la base de données
-	QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
-	db.setHostName("192.168.64.213");
-	db.setDatabaseName("testDMX");
-	db.setUserName("root");
-	db.setPassword("root");
-
-	if (!db.open()) {
-		qDebug() << "Échec de la connexion à la base de données.";
-		return;
-	}
+	
 
 	// Exécuter une requête pour récupérer toutes les scènes existantes
-	QSqlQuery query("SELECT * FROM Scene");
+	QSqlQuery query("SELECT * FROM scene");
 
 	// Parcourir les résultats de la requête et ajouter chaque scène à la liste
 	while (query.next()) {
@@ -112,20 +102,10 @@ void DMXProject::afficherScenes()
 
 void DMXProject::afficherEquipements()
 {
-	// Connexion à la base de données
-	QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
-	db.setHostName("192.168.64.213");
-	db.setDatabaseName("testDMX");
-	db.setUserName("root");
-	db.setPassword("root");
-
-	if (!db.open()) {
-		qDebug() << "Échec de la connexion à la base de données.";
-		return;
-	}
+	
 
 	// Exécuter une requête pour récupérer tous les équipements existants
-	QSqlQuery query("SELECT nom FROM Equipement");
+	QSqlQuery query("SELECT nom FROM equipement");
 
 	// Créer un widget de défilement pour contenir le layout des équipements
 	QScrollArea *scrollArea = new QScrollArea;
@@ -164,14 +144,17 @@ void DMXProject::afficherEquipements()
 }
 
 
-void DMXProject::on_buttonEquip_clicked()
-{
+// Modifiez votre slot on_buttonEquip_clicked pour appeler cette fonction
+void DMXProject::on_buttonEquip_clicked() {
 	QString nomEquipement = ui.nomEquipEdit->text();
 	QString adresseEquipement = ui.adresseEquipEdit->text();
+	int numCanal = ui.adresseEquipEdit->text().toInt(); // Convertir le texte en entier
 	int nbCanaux = ui.nbCannauxEdit->text().toInt(); // Convertir le texte en entier
+	createChannelLabelsAndLineEdits(nbCanaux, numCanal);
+
 
 	QSqlQuery query;
-	query.prepare("INSERT INTO Equipement (nom, adresse, nbCanal) VALUES (:nom, :adresse, :nbCanal)");
+	query.prepare("INSERT INTO equipement (nom, adresse, nbCanal) VALUES (:nom, :adresse, :nbCanal)");
 	query.bindValue(":nom", nomEquipement);
 	query.bindValue(":adresse", adresseEquipement);
 	query.bindValue(":nbCanal", nbCanaux);
@@ -187,22 +170,13 @@ void DMXProject::on_buttonEquip_clicked()
 
 
 
+
 void DMXProject::afficherScenesCheckbox()
 {
-	// Connexion à la base de données
-	QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
-	db.setHostName("192.168.64.213");
-	db.setDatabaseName("testDMX");
-	db.setUserName("root");
-	db.setPassword("root");
-
-	if (!db.open()) {
-		qDebug() << "Échec de la connexion à la base de données.";
-		return;
-	}
+	
 
 	// Exécuter une requête pour récupérer tous les équipements existants
-	QSqlQuery query("SELECT nom FROM Scene");
+	QSqlQuery query("SELECT nom FROM scene");
 
 	// Créer un widget de défilement pour contenir le layout des scènes
 	QScrollArea *scrollArea = new QScrollArea;
@@ -258,5 +232,64 @@ void DMXProject::afficherScenesCheckbox()
 				}
 			}
 		});
+	}
+}
+
+
+
+
+void DMXProject::createChannelLabelsAndLineEdits(int channelCount, int numCanal) {
+	// Supprimez les widgets précédemment ajoutés s'il y en a
+	ui.stackedWidget->setCurrentIndex(3);
+	QLayoutItem *child;
+	while ((child = ui.verticalLayout_17->takeAt(0)) != nullptr) {
+		delete child->widget();
+		delete child;
+	}
+
+	// Affichez les QLabel et les QLineEdit pour chaque canal
+	for (int i = 0; i < channelCount; ++i) {
+		QLabel *label = new QLabel("Nom du canal " + QString::number(numCanal++) + ":");
+		QLineEdit *lineEdit = new QLineEdit;
+		ui.verticalLayout_17->addWidget(label);
+		ui.verticalLayout_17->addWidget(lineEdit);
+	}
+}
+
+void DMXProject::on_validateButtonEquip_clicked() {
+	// Récupérer l'ID du dernier équipement inséré
+	QSqlQuery query;
+	query.exec("SELECT LAST_INSERT_ID()");
+	int idEquip = query.next() ? query.value(0).toInt() : -1;
+
+	if (idEquip == -1) {
+		qDebug() << "Erreur : impossible de récupérer l'ID du dernier équipement inséré.";
+		return;
+	}
+
+	// Récupérer la valeur de numCanal
+	int idNumCanal = ui.adresseEquipEdit->text().toInt();
+
+	// Parcourir tous les QLineEdit et insérer les données dans la table "champ"
+	QLayoutItem *child;
+	while ((child = ui.verticalLayout_17->takeAt(0)) != nullptr) {
+		QLineEdit *lineEdit = dynamic_cast<QLineEdit*>(child->widget());
+		if (lineEdit) {
+			QString nom = lineEdit->text();
+
+			// Insérer les données dans la table "champ"
+			query.prepare("INSERT INTO champ (idEquip, idNumCanal, nom) VALUES (:idEquip, :idNumCanal, :nom)");
+			query.bindValue(":idEquip", idEquip);
+			query.bindValue(":idNumCanal", idNumCanal);
+			query.bindValue(":nom", nom);
+
+			if (!query.exec()) {
+				qDebug() << "Erreur lors de l'insertion des données dans la table 'champ' : " << query.lastError().text();
+			}
+
+			idNumCanal++; // Incrémenter idNumCanal pour le prochain enregistrement
+		}
+		delete child->widget();
+		delete child;
 	}
 }
