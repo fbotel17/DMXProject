@@ -14,6 +14,8 @@ public:
 	void afficherEquipements();
 	void afficherScenesCheckbox();
 	void createChannelLabelsAndLineEdits(int channelCount, int numCanal);
+	void createFormForSelectedEquipements(const QList<QString>& selectedEquipements, const QString& selectedScene);
+
 
 
 public slots:
@@ -24,6 +26,7 @@ public slots:
 	void on_pushButtonValider_clicked();
 	void on_buttonEquip_clicked();
 	void on_validateButtonEquip_clicked();
+	void on_pushButton_clicked();
 
 
 

@@ -10,6 +10,7 @@
 #include <QVBoxLayout>
 #include <QListWidgetItem> // Ajoutez cette ligne
 #include <QScrollArea>
+#include <QStringList>
 
 
 
@@ -291,5 +292,134 @@ void DMXProject::on_validateButtonEquip_clicked() {
 		}
 		delete child->widget();
 		delete child;
+	}
+}
+
+
+void DMXProject::on_pushButton_clicked()
+{
+	qDebug() << "Number of children in verticalLayoutEquipements:" << ui.verticalLayoutEquipements->count();
+
+	// Find the widgetEquipements and widgetScenes widgets
+	QWidget *widgetEquipements = ui.verticalLayoutEquipements->itemAt(0)->widget();
+	QWidget *widgetScenes = ui.verticalLayoutScenes->itemAt(0)->widget();
+
+	// Récupérer les équipements sélectionnés
+	QList<QCheckBox*> checkedEquipements = widgetEquipements->findChildren<QCheckBox*>();
+	QList<QString> selectedEquipements;
+
+	if (checkedEquipements.isEmpty())
+	{
+		qDebug() << "No QCheckBox objects found in widgetEquipements.";
+	}
+	else
+	{
+		qDebug() << "Found" << checkedEquipements.size() << "QCheckBox objects in widgetEquipements.";
+
+		for (QCheckBox* checkBox : checkedEquipements)
+		{
+			if (checkBox->isChecked())
+			{
+				// Récupérer le nom de l'équipement à partir du texte de la QCheckBox
+				QString equipementName = checkBox->text();
+				selectedEquipements.append(equipementName);
+			}
+		}
+	}
+
+	// Récupérer la scène sélectionnée
+	QList<QCheckBox*> checkedScenes = widgetScenes->findChildren<QCheckBox*>();
+	QString selectedScene;
+
+	if (checkedScenes.isEmpty())
+	{
+		qDebug() << "No QCheckBox objects found in widgetScenes.";
+	}
+	else
+	{
+		qDebug() << "Found" << checkedScenes.size() << "QCheckBox objects in widgetScenes.";
+
+		for (QCheckBox* checkBox : checkedScenes)
+		{
+			if (checkBox->isChecked())
+			{
+				// Récupérer le nom de la scène à partir du texte de la QCheckBox
+				QString sceneName = checkBox->text();
+				selectedScene = sceneName;
+				break;
+			}
+		}
+	}
+
+	if (!selectedEquipements.isEmpty() && !selectedScene.isEmpty())
+	{
+		// Créer le formulaire dynamique
+		createFormForSelectedEquipements(selectedEquipements, selectedScene);
+
+		// Passer à la page d'index 4
+		ui.stackedWidget->setCurrentIndex(4);
+	}
+	else
+	{
+		qDebug() << "No equipments or scene selected.";
+	}
+}
+
+
+
+
+
+
+void DMXProject::createFormForSelectedEquipements(const QList<QString>& selectedEquipements, const QString& selectedScene)
+{
+	// Effacer le layout verticalLayout_18
+	QLayoutItem* child;
+	while ((child = ui.verticalLayout_18->takeAt(0)) != nullptr)
+	{
+		delete child->widget();
+		delete child;
+	}
+
+	// Récupérer les informations sur les canaux pour chaque équipement sélectionné
+	QStringList equipementNames;
+	for (const QString& equipementName : selectedEquipements)
+	{
+		equipementNames.append("'" + equipementName + "'");
+	}
+	QString joinedEquipementNames = equipementNames.join(",");
+
+	QSqlQuery query("SELECT e.nom, c.idNumCanal, c.nom AS canalNom "
+		"FROM equipement e "
+		"JOIN champ c ON e.id = c.idEquip "
+		"WHERE e.nom IN (" + joinedEquipementNames + ") "
+		"ORDER BY e.nom, c.idNumCanal");
+
+	QMap<QString, QList<QPair<int, QString>>> equipementCanaux;
+	while (query.next())
+	{
+		QString equipementName = query.value(0).toString();
+		int canalId = query.value(1).toInt();
+		QString canalNom = query.value(2).toString();
+
+		if (!equipementCanaux.contains(equipementName))
+		{
+			equipementCanaux[equipementName] = QList<QPair<int, QString>>();
+		}
+
+		equipementCanaux[equipementName].append(qMakePair(canalId, canalNom));
+	}
+
+	// Créer les QLabel et QLineEdit pour chaque canal des équipements sélectionnés
+	for (const QString& equipementName : selectedEquipements)
+	{
+		QList<QPair<int, QString>> canaux = equipementCanaux[equipementName];
+		for (const QPair<int, QString>& canal : canaux)
+		{
+			QLabel* label = new QLabel(canal.second + " :");
+			QLineEdit* lineEdit = new QLineEdit;
+
+			ui.verticalLayout_18->addWidget(label);
+			ui.verticalLayout_18->addWidget(lineEdit);
+		}
 	}
 }
