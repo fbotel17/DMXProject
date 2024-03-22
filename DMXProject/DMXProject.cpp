@@ -376,6 +376,7 @@ void DMXProject::on_pushButton_clicked()
 
 void DMXProject::createFormForSelectedEquipements(const QList<QString>& selectedEquipements, const QString& selectedScene)
 {
+	clearForm();
 	// Effacer le layout verticalLayout_18
 	QLayoutItem* child;
 	while ((child = ui.verticalLayout_18->takeAt(0)) != nullptr)
@@ -408,7 +409,6 @@ void DMXProject::createFormForSelectedEquipements(const QList<QString>& selected
 	}
 
 	// Créer les QLabel et QLineEdit pour chaque canal des équipements sélectionnés
-	// Créer les QLabel et QLineEdit pour chaque canal des équipements sélectionnés
 	for (const QString& equipementName : selectedEquipements)
 	{
 		QList<QPair<int, QString>> canaux = equipementCanaux[equipementName];
@@ -416,6 +416,7 @@ void DMXProject::createFormForSelectedEquipements(const QList<QString>& selected
 		{
 			QLabel* label = new QLabel(canal.second + " :");
 			int idNumCanal = getEquipmentCanalNumber(equipementName, canal.first); // Appel de la méthode getEquipmentCanalNumber
+			numCanal = canal.first;
 			if (idNumCanal != -1)
 			{
 				label->setText(QString("Nom du canal %1 :").arg(idNumCanal)); // Utilisation du numéro de canal récupéré
@@ -501,7 +502,7 @@ void DMXProject::on_ValidateButtonCanal_clicked()
 	// Récupérer les données des canaux pour l'équipement actuel
 	QList<QPair<int, int>> channelData;
 	QLayoutItem *child;
-	int currentChannelNumber = 1; // Numéro du premier canal
+	int currentChannelNumber = numCanal -3; // Numéro du premier canal
 	while ((child = ui.verticalLayout_18->takeAt(0)) != nullptr)
 	{
 		QLineEdit *lineEdit = qobject_cast<QLineEdit*>(child->widget());
@@ -541,14 +542,18 @@ void DMXProject::on_ValidateButtonCanal_clicked()
 
 int DMXProject::getEquipmentCanalNumber(const QString &equipmentName, int canalNumber)
 {
+	
     QSqlQuery query;
     query.prepare("SELECT idNumCanal FROM champ WHERE idEquip = (SELECT id FROM equipement WHERE nom = :nom) AND idNumCanal = :idNumCanal");
     query.bindValue(":nom", equipmentName);
     query.bindValue(":idNumCanal", canalNumber);
+	
 
     if (query.exec() && query.next())
     {
+		
         return canalNumber;
+		
     }
     else
     {

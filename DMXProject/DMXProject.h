@@ -43,4 +43,5 @@ private:
 	int m_currentEquipementIndex;
 	QString m_selectedScene;
 	QList<QLineEdit*> m_lineEdits;
+	int numCanal;
 };
