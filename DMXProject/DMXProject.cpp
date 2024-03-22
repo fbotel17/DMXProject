@@ -380,18 +380,12 @@ void DMXProject::createFormForSelectedEquipements(const QList<QString>& selected
 	}
 
 	// Récupérer les informations sur les canaux pour chaque équipement sélectionné
-	QStringList equipementNames;
-	for (const QString& equipementName : selectedEquipements)
-	{
-		equipementNames.append("'" + equipementName + "'");
-	}
-	QString joinedEquipementNames = equipementNames.join(",");
-
-	QSqlQuery query("SELECT e.nom, c.idNumCanal, c.nom AS canalNom "
+	QString joinedEquipementNames = selectedEquipements.join("','");
+	QSqlQuery query(QString("SELECT e.nom, c.idNumCanal, c.nom AS canalNom "
 		"FROM equipement e "
 		"JOIN champ c ON e.id = c.idEquip "
-		"WHERE e.nom IN (" + joinedEquipementNames + ") "
-		"ORDER BY e.nom, c.idNumCanal");
+		"WHERE e.nom IN ('%1') "
+		"ORDER BY e.nom, c.idNumCanal").arg(joinedEquipementNames));
 
 	QMap<QString, QList<QPair<int, QString>>> equipementCanaux;
 	while (query.next())
@@ -409,19 +403,31 @@ void DMXProject::createFormForSelectedEquipements(const QList<QString>& selected
 	}
 
 	// Créer les QLabel et QLineEdit pour chaque canal des équipements sélectionnés
+	// Créer les QLabel et QLineEdit pour chaque canal des équipements sélectionnés
 	for (const QString& equipementName : selectedEquipements)
 	{
 		QList<QPair<int, QString>> canaux = equipementCanaux[equipementName];
 		for (const QPair<int, QString>& canal : canaux)
 		{
 			QLabel* label = new QLabel(canal.second + " :");
-			QLineEdit* lineEdit = new QLineEdit;
+			int idNumCanal = getEquipmentCanalNumber(equipementName, canal.first); // Appel de la méthode getEquipmentCanalNumber
+			if (idNumCanal != -1)
+			{
+				label->setText(QString("Nom du canal %1 :").arg(idNumCanal)); // Utilisation du numéro de canal récupéré
+			}
+			else
+			{
+				qDebug() << "Erreur : impossible de récupérer le numéro de canal pour l'équipement" << equipementName;
+			}
 
+			QLineEdit* lineEdit = new QLineEdit;
 			ui.verticalLayout_18->addWidget(label);
 			ui.verticalLayout_18->addWidget(lineEdit);
 		}
 	}
+
 }
+
 
 
 void DMXProject::insertChannelData(int idScene, QList<QPair<int, int>> channelData)
@@ -547,6 +553,7 @@ int DMXProject::getEquipmentCanalNumber(const QString &equipmentName, int canalN
 	}
 }
 
+
 void DMXProject::createFormForCurrentEquipement()
 {
 	if (m_currentEquipementIndex < m_selectedEquipementsData.size())
@@ -554,12 +561,7 @@ void DMXProject::createFormForCurrentEquipement()
 		const auto &equipmentData = m_selectedEquipementsData[m_currentEquipementIndex];
 
 		// Effacer le layout existant
-		QLayoutItem *child;
-		while ((child = ui.verticalLayout_18->takeAt(0)) != nullptr)
-		{
-			delete child->widget();
-			delete child;
-		}
+		clearForm();
 
 		// Ajouter un nouveau widget et un nouveau layout au layout principal
 		QWidget *formWidget = new QWidget(this);
@@ -569,16 +571,28 @@ void DMXProject::createFormForCurrentEquipement()
 		// Ajouter les labels et les lignes d'édition pour chaque canal de l'équipement actuel
 		for (const auto &channelData : equipmentData.second)
 		{
-			QLabel *label = new QLabel(formWidget); // Correct, mais le texte manque
+			QLabel *label = new QLabel(formWidget);
 			QLineEdit *lineEdit = new QLineEdit(formWidget);
 			formLayout->addWidget(label);
 			formLayout->addWidget(lineEdit);
+
+			// Récupérer le numéro de canal correct à partir de la base de données
+			int idNumCanal = getEquipmentCanalNumber(equipmentData.first, channelData.first);
+			if (idNumCanal != -1)
+			{
+				label->setText(QString("Nom du canal %1 :").arg(idNumCanal));
+			}
+			else
+			{
+				qDebug() << "Erreur : impossible de récupérer le numéro de canal pour l'équipement" << equipmentData.first;
+			}
 
 			// Stocker le pointeur du QLineEdit dans m_lineEdits pour un accès ultérieur
 			m_lineEdits.append(lineEdit);
 		}
 	}
 }
+
 
 void DMXProject::clearForm()
 {
