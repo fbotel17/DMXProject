@@ -286,6 +286,19 @@
          <string>Ajouter un Equipement</string>
         </property>
        </widget>
+       <widget class="QPushButton" name="pushButton_2">
+        <property name="geometry">
+         <rect>
+          <x>1030</x>
+          <y>250</y>
+          <width>75</width>
+          <height>23</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>PushButton</string>
+        </property>
+       </widget>
       </widget>
       <widget class="QWidget" name="page">
        <widget class="QWidget" name="verticalLayoutWidget_5">
@@ -349,7 +362,7 @@
      <x>0</x>
      <y>0</y>
      <width>1367</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuChoisir">
