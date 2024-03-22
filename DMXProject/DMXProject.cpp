@@ -539,64 +539,26 @@ void DMXProject::on_ValidateButtonCanal_clicked()
 
 
 
-
 int DMXProject::getEquipmentCanalNumber(const QString &equipmentName, int canalNumber)
 {
-	QSqlQuery query;
-	query.prepare("SELECT idNumCanal FROM champ WHERE idEquip = (SELECT id FROM equipement WHERE nom = :nom) AND nom = :canalName");
-	query.bindValue(":nom", equipmentName);
-	query.bindValue(":canalName", QString("Canal %1").arg(canalNumber + 1)); // Assurez-vous que le nom du canal dans la table `champ` correspond à ce format
+    QSqlQuery query;
+    query.prepare("SELECT idNumCanal FROM champ WHERE idEquip = (SELECT id FROM equipement WHERE nom = :nom) AND idNumCanal = :idNumCanal");
+    query.bindValue(":nom", equipmentName);
+    query.bindValue(":idNumCanal", canalNumber);
 
-	if (query.exec() && query.next())
-	{
-		return query.value(0).toInt();
-	}
-	else
-	{
-		qDebug() << "Erreur lors de la récupération du numéro de canal : " << query.lastError().text();
-		return -1;
-	}
+    if (query.exec() && query.next())
+    {
+        return canalNumber;
+    }
+    else
+    {
+        qDebug() << "Erreur lors de la récupération du numéro de canal : " << query.lastError().text();
+        return -1;
+    }
 }
 
 
-void DMXProject::createFormForCurrentEquipement()
-{
-	if (m_currentEquipementIndex < m_selectedEquipementsData.size())
-	{
-		const auto &equipmentData = m_selectedEquipementsData[m_currentEquipementIndex];
 
-		// Effacer le layout existant
-		clearForm();
-
-		// Ajouter un nouveau widget et un nouveau layout au layout principal
-		QWidget *formWidget = new QWidget(this);
-		QVBoxLayout *formLayout = new QVBoxLayout(formWidget);
-		ui.verticalLayout_18->addWidget(formWidget);
-
-		// Ajouter les labels et les lignes d'édition pour chaque canal de l'équipement actuel
-		for (const auto &channelData : equipmentData.second)
-		{
-			QLabel *label = new QLabel(formWidget);
-			QLineEdit *lineEdit = new QLineEdit(formWidget);
-			formLayout->addWidget(label);
-			formLayout->addWidget(lineEdit);
-
-			// Récupérer le numéro de canal correct à partir de la base de données
-			int idNumCanal = getEquipmentCanalNumber(equipmentData.first, channelData.first);
-			if (idNumCanal != -1)
-			{
-				label->setText(QString("Nom du canal %1 :").arg(idNumCanal));
-			}
-			else
-			{
-				qDebug() << "Erreur : impossible de récupérer le numéro de canal pour l'équipement" << equipmentData.first;
-			}
-
-			// Stocker le pointeur du QLineEdit dans m_lineEdits pour un accès ultérieur
-			m_lineEdits.append(lineEdit);
-		}
-	}
-}
 
 
 void DMXProject::clearForm()

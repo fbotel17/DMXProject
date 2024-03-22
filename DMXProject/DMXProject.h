@@ -20,7 +20,6 @@ public:
 	int getEquipmentId(const QString &equipmentName);
 	int getSceneId(const QString &sceneName);
 	int getEquipmentCanalNumber(const QString &equipmentName, int canalNumber);
-	void createFormForCurrentEquipement();
 	void clearForm();
 
 
