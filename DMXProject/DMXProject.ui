@@ -18,7 +18,7 @@
     <item>
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="currentIndex">
-       <number>2</number>
+       <number>5</number>
       </property>
       <widget class="QWidget" name="page_3">
        <widget class="QWidget" name="formLayoutWidget">
@@ -286,19 +286,6 @@
          <string>Ajouter un Equipement</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="pushButton_2">
-        <property name="geometry">
-         <rect>
-          <x>1030</x>
-          <y>250</y>
-          <width>75</width>
-          <height>23</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>PushButton</string>
-        </property>
-       </widget>
       </widget>
       <widget class="QWidget" name="page">
        <widget class="QWidget" name="verticalLayoutWidget_5">
@@ -352,6 +339,19 @@
         </property>
        </widget>
       </widget>
+      <widget class="QWidget" name="page_6">
+       <widget class="QWidget" name="verticalLayoutWidget">
+        <property name="geometry">
+         <rect>
+          <x>110</x>
+          <y>50</y>
+          <width>961</width>
+          <height>581</height>
+         </rect>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_3"/>
+       </widget>
+      </widget>
      </widget>
     </item>
    </layout>
@@ -370,6 +370,7 @@
      <string>Choisir</string>
     </property>
     <addaction name="actionAjouter_un_equipement"/>
+    <addaction name="actionSupprimer_un_equipement"/>
     <addaction name="actionCreer_une_sc_ne"/>
     <addaction name="actionConfigurer_une_sc_ne_2"/>
    </widget>
@@ -400,6 +401,11 @@
   <action name="actionAjouter_un_equipement">
    <property name="text">
     <string>Ajouter un equipement</string>
+   </property>
+  </action>
+  <action name="actionSupprimer_un_equipement">
+   <property name="text">
+    <string>Supprimer un equipement</string>
    </property>
   </action>
  </widget>

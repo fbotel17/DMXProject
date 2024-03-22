@@ -28,6 +28,7 @@ public slots:
 	void on_actionCreer_une_sc_ne_triggered();
 	void on_actionConfigurer_une_sc_ne_2_triggered();
 	void on_actionAjouter_un_equipement_triggered();
+	void on_actionSupprimer_un_equipement_triggered();
 	
 	void on_pushButtonValider_clicked();
 	void on_buttonEquip_clicked();

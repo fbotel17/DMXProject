@@ -83,6 +83,11 @@ void DMXProject::on_actionAjouter_un_equipement_triggered()
 	ui.stackedWidget->setCurrentIndex(2);
 }
 
+void DMXProject::on_actionSupprimer_un_equipement_triggered()
+{
+	ui.stackedWidget->setCurrentIndex(5);
+}
+
 void DMXProject::afficherScenes()
 {
 	
@@ -607,3 +612,5 @@ void DMXProject::clearForm()
 	// Vider la liste des pointeurs de QLineEdit
 	m_lineEdits.clear();
 }
+
+
