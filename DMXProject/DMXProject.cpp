@@ -346,6 +346,7 @@ void DMXProject::on_pushButton_clicked()
 				// Récupérer le nom de la scène à partir du texte de la QCheckBox
 				QString sceneName = checkBox->text();
 				selectedScene = sceneName;
+				m_selectedScene = sceneName;
 				break;
 			}
 		}
@@ -353,6 +354,7 @@ void DMXProject::on_pushButton_clicked()
 
 	if (!selectedEquipements.isEmpty() && !selectedScene.isEmpty())
 	{
+
 		// Créer le formulaire dynamique
 		createFormForSelectedEquipements(selectedEquipements, selectedScene);
 
@@ -364,9 +366,6 @@ void DMXProject::on_pushButton_clicked()
 		qDebug() << "No equipments or scene selected.";
 	}
 }
-
-
-
 
 
 
@@ -422,4 +421,175 @@ void DMXProject::createFormForSelectedEquipements(const QList<QString>& selected
 			ui.verticalLayout_18->addWidget(lineEdit);
 		}
 	}
+}
+
+
+void DMXProject::insertChannelData(int idScene, QList<QPair<int, int>> channelData)
+{
+	QSqlQuery query;
+
+	for (const auto &channel : channelData)
+	{
+		query.prepare("INSERT INTO canaux (numCanal, idScene, valeur) VALUES (:numCanal, :idScene, :valeur)");
+		query.bindValue(":numCanal", channel.first);
+		query.bindValue(":idScene", idScene);
+		query.bindValue(":valeur", channel.second);
+
+		if (!query.exec())
+		{
+			qDebug() << "Erreur lors de l'insertion des données dans la table 'canaux' : " << query.lastError().text();
+		}
+	}
+}
+
+int DMXProject::getEquipmentId(const QString &equipmentName)
+{
+	QSqlQuery query;
+	query.prepare("SELECT id FROM equipement WHERE nom = :nom");
+	query.bindValue(":nom", equipmentName);
+
+	if (query.exec() && query.next())
+	{
+		return query.value(0).toInt();
+	}
+	else
+	{
+		qDebug() << "Erreur lors de la récupération de l'ID de l'équipement : " << query.lastError().text();
+		return -1;
+	}
+}
+
+
+int DMXProject::getSceneId(const QString &sceneName)
+{
+	QSqlQuery query;
+	query.prepare("SELECT id FROM scene WHERE nom = :nom");
+	query.bindValue(":nom", sceneName);
+
+	if (query.exec() && query.next())
+	{
+		return query.value(0).toInt();
+	}
+	else
+	{
+		qDebug() << "Erreur lors de la récupération de l'ID de la scène : " << query.lastError().text();
+		return -1;
+	}
+}
+
+void DMXProject::on_ValidateButtonCanal_clicked()
+{
+	// Récupérer l'ID de la scène sélectionnée
+	int idScene = getSceneId(m_selectedScene);
+	if (idScene == -1)
+	{
+		qDebug() << "Erreur : impossible de récupérer l'ID de la scène.";
+		return;
+	}
+
+	// Récupérer les données des canaux pour l'équipement actuel
+	QList<QPair<int, int>> channelData;
+	QLayoutItem *child;
+	int currentChannelNumber = 1; // Numéro du premier canal
+	while ((child = ui.verticalLayout_18->takeAt(0)) != nullptr)
+	{
+		QLineEdit *lineEdit = qobject_cast<QLineEdit*>(child->widget());
+		if (lineEdit)
+		{
+			QString text = lineEdit->text();
+
+			// Convertir le texte en entier
+			bool conversionOk;
+			int value = text.toInt(&conversionOk);
+
+			// Vérifier si la conversion a réussi
+			if (conversionOk)
+			{
+				// Utiliser la valeur convertie ici
+				channelData.append(qMakePair(currentChannelNumber, value));
+			}
+			else
+			{
+				// Gérer le cas où la conversion échoue
+				qDebug() << "La conversion a échoué. Le texte n'est pas un entier valide :" << text;
+				// Ajouter une valeur par défaut
+				channelData.append(qMakePair(currentChannelNumber, 0));
+			}
+
+			currentChannelNumber++; // Passer au prochain canal
+		}
+		delete child;
+	}
+
+	// Insérer les données des canaux dans la table "canaux"
+	insertChannelData(idScene, channelData);
+}
+
+
+
+
+
+int DMXProject::getEquipmentCanalNumber(const QString &equipmentName, int canalNumber)
+{
+	QSqlQuery query;
+	query.prepare("SELECT idNumCanal FROM champ WHERE idEquip = (SELECT id FROM equipement WHERE nom = :nom) AND nom = :canalName");
+	query.bindValue(":nom", equipmentName);
+	query.bindValue(":canalName", QString("Canal %1").arg(canalNumber + 1)); // Assurez-vous que le nom du canal dans la table `champ` correspond à ce format
+
+	if (query.exec() && query.next())
+	{
+		return query.value(0).toInt();
+	}
+	else
+	{
+		qDebug() << "Erreur lors de la récupération du numéro de canal : " << query.lastError().text();
+		return -1;
+	}
+}
+
+void DMXProject::createFormForCurrentEquipement()
+{
+	if (m_currentEquipementIndex < m_selectedEquipementsData.size())
+	{
+		const auto &equipmentData = m_selectedEquipementsData[m_currentEquipementIndex];
+
+		// Effacer le layout existant
+		QLayoutItem *child;
+		while ((child = ui.verticalLayout_18->takeAt(0)) != nullptr)
+		{
+			delete child->widget();
+			delete child;
+		}
+
+		// Ajouter un nouveau widget et un nouveau layout au layout principal
+		QWidget *formWidget = new QWidget(this);
+		QVBoxLayout *formLayout = new QVBoxLayout(formWidget);
+		ui.verticalLayout_18->addWidget(formWidget);
+
+		// Ajouter les labels et les lignes d'édition pour chaque canal de l'équipement actuel
+		for (const auto &channelData : equipmentData.second)
+		{
+			QLabel *label = new QLabel(formWidget); // Correct, mais le texte manque
+			QLineEdit *lineEdit = new QLineEdit(formWidget);
+			formLayout->addWidget(label);
+			formLayout->addWidget(lineEdit);
+
+			// Stocker le pointeur du QLineEdit dans m_lineEdits pour un accès ultérieur
+			m_lineEdits.append(lineEdit);
+		}
+	}
+}
+
+void DMXProject::clearForm()
+{
+	// Effacer le layout existant
+	QLayoutItem *child;
+	while ((child = ui.verticalLayout_18->takeAt(0)) != nullptr)
+	{
+		delete child->widget();
+		delete child;
+	}
+
+	// Vider la liste des pointeurs de QLineEdit
+	m_lineEdits.clear();
 }
