@@ -5,11 +5,11 @@
 
 class DMXProject : public QMainWindow
 {
-    Q_OBJECT
+	Q_OBJECT
 
 public:
-    DMXProject(QWidget *parent = nullptr);
-    ~DMXProject();
+	DMXProject(QWidget* parent = nullptr);
+	~DMXProject();
 	void afficherScenes();
 	void afficherEquipements();
 	void afficherScenesCheckbox();
@@ -17,9 +17,9 @@ public:
 	void createFormForSelectedEquipements(const QList<QString>& selectedEquipements, const QString& selectedScene);
 
 	void insertChannelData(int idScene, QList<QPair<int, int>> channelData);
-	int getEquipmentId(const QString &equipmentName);
-	int getSceneId(const QString &sceneName);
-	int getEquipmentCanalNumber(const QString &equipmentName, int canalNumber);
+	int getEquipmentId(const QString& equipmentName);
+	int getSceneId(const QString& sceneName);
+	int getEquipmentCanalNumber(const QString& equipmentName, int canalNumber);
 	void clearForm();
 
 
@@ -28,7 +28,7 @@ public slots:
 	void on_actionConfigurer_une_sc_ne_2_triggered();
 	void on_actionAjouter_un_equipement_triggered();
 	void on_actionSupprimer_un_equipement_triggered();
-	
+
 	void on_pushButtonValider_clicked();
 	void on_buttonEquip_clicked();
 	void on_validateButtonEquip_clicked();
@@ -36,9 +36,8 @@ public slots:
 	void on_ValidateButtonCanal_clicked();
 
 
-
 private:
-    Ui::DMXProjectClass ui;
+	Ui::DMXProjectClass ui;
 	QList<QPair<QString, QList<QPair<int, QString>>>> m_selectedEquipementsData;
 	int m_currentEquipementIndex;
 	QString m_selectedScene;

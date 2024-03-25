@@ -581,3 +581,35 @@ void DMXProject::clearForm()
 }
 
 
+void DMXProject::on_actionSupprimer_un_equipement_triggered()
+{
+	// Créer un nouveau widget pour contenir les cases à cocher des équipements
+	QWidget* widget = new QWidget;
+	QVBoxLayout* layout = new QVBoxLayout(widget);
+
+	// Supprimer tous les enfants du layout verticalLayout_3
+	QLayoutItem* child;
+	while ((child = ui.verticalLayout_3->takeAt(0)) != nullptr) {
+		delete child->widget();
+		delete child;
+	}
+
+	// Exécuter une requête pour récupérer tous les équipements existants
+	QSqlQuery query("SELECT nom FROM equipement");
+
+	// Parcourir les résultats de la requête et ajouter chaque équipement en tant que case à cocher
+	while (query.next()) {
+		QString nomEquipement = query.value(0).toString();
+
+		// Créer une case à cocher pour l'équipement
+		QCheckBox* checkBox = new QCheckBox(nomEquipement);
+		// Ajouter la case à cocher au layout des équipements
+		layout->addWidget(checkBox);
+	}
+
+	// Ajouter le widget contenant les cases à cocher au layout verticalLayout_3
+	ui.verticalLayout_3->addWidget(widget);
+
+	// Afficher la page où se trouve le verticalLayout_3
+	ui.stackedWidget->setCurrentIndex(5);
+}
