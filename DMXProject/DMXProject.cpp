@@ -11,6 +11,9 @@
 #include <QListWidgetItem> // Ajoutez cette ligne
 #include <QScrollArea>
 #include <QStringList>
+#include <QTableWidgetItem>
+#include <QStandardItemModel>
+#include <QHeaderView>
 
 
 
@@ -86,6 +89,7 @@ void DMXProject::on_actionAjouter_un_equipement_triggered()
 
 void DMXProject::on_actionSupprimer_un_equipement_triggered()
 {
+	Supprimer_un_equipement();
 	ui.stackedWidget->setCurrentIndex(5);
 }
 
@@ -173,9 +177,6 @@ void DMXProject::on_buttonEquip_clicked() {
 		qDebug() << "Erreur lors de l'insertion de l'équipement:" << query.lastError().text();
 	}
 }
-
-
-
 
 
 void DMXProject::afficherScenesCheckbox()
@@ -584,32 +585,58 @@ void DMXProject::clearForm()
 
 void DMXProject::Supprimer_un_equipement()
 {
-	// Créer un nouveau widget pour contenir les cases à cocher des équipements
-	QWidget* widget = new QWidget;
-	QVBoxLayout* layout = new QVBoxLayout(widget);
-
-	// Supprimer tous les enfants du layout verticalLayout_3
+	// Effacer tous les widgets précédents du layout
 	QLayoutItem* child;
-	while ((child = ui.verticalLayout_3->takeAt(0)) != nullptr) {
+	while ((child = ui.verticalLayout_3->takeAt(0)) != nullptr)
+	{
 		delete child->widget();
 		delete child;
 	}
 
-	// Exécuter une requête pour récupérer tous les équipements existants
-	QSqlQuery query("SELECT nom FROM equipement");
+	// Vider la liste des pointeurs de QLineEdit
+	m_lineEdits.clear();
 
-	// Parcourir les résultats de la requête et ajouter chaque équipement en tant que case à cocher
+	// Créer un nouveau QTableView
+	QTableView* tableView = new QTableView;
+
+	// Créer un modèle de tableau vide avec cinq colonnes
+	QStandardItemModel* model = new QStandardItemModel(0, 5);
+	tableView->setModel(model);
+
+	// Définir les en-têtes de colonne
+	model->setHorizontalHeaderLabels(QStringList() << "Nom de l'équipement" << "Adresse" << "Nombre de Canal" << "Supprimer" << "Modifier");
+
+	// Exécuter une requête pour récupérer tous les équipements existants
+	QSqlQuery query("SELECT nom, adresse, nbCanal FROM equipement");
+
+	// Parcourir les résultats de la requête et ajouter chaque équipement en tant que ligne dans le modèle de tableau
 	while (query.next()) {
 		QString nomEquipement = query.value(0).toString();
+		QString adresseEquipement = query.value(1).toString();
+		int nbCanalEquipement = query.value(2).toInt();
 
-		// Créer une case à cocher pour l'équipement
-		QCheckBox* checkBox = new QCheckBox(nomEquipement);
-		// Ajouter la case à cocher au layout des équipements
-		layout->addWidget(checkBox);
+		QList<QStandardItem*> rowData;
+		rowData << new QStandardItem(nomEquipement);
+		rowData << new QStandardItem(adresseEquipement);
+		rowData << new QStandardItem(QString::number(nbCanalEquipement));
+		// Laisser les deux autres colonnes vides pour Supprimer et Modifier
+		rowData << new QStandardItem("");
+		rowData << new QStandardItem("");
+
+		model->appendRow(rowData);
 	}
 
-	// Ajouter le widget contenant les cases à cocher au layout verticalLayout_3
-	ui.verticalLayout_3->addWidget(widget);
+	// Redimensionner les colonnes pour qu'elles s'adaptent au contenu
+	tableView->resizeColumnsToContents();
+
+	// Définir les politiques de taille pour le tableau et le widget parent
+	tableView->horizontalHeader()->setStretchLastSection(true);
+	tableView->verticalHeader()->setStretchLastSection(true);
+	tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+	tableView->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+
+	// Ajouter le QTableView au layout verticalLayout_3 en prenant tout l'espace disponible
+	ui.verticalLayout_3->addWidget(tableView);
 
 	// Afficher la page où se trouve le verticalLayout_3
 	ui.stackedWidget->setCurrentIndex(5);
