@@ -23,6 +23,7 @@ public:
 	void clearForm();
 	void supprimerEquipement(int idEquipement);
 	void Supprimer_un_equipement();
+	void modifierEquipement(int idEquipement, const QString& nomEquipement, const QString& adresseEquipement, int nbCanalEquipement);
 
 public slots:
 	void on_actionCreer_une_sc_ne_triggered();
@@ -36,7 +37,7 @@ public slots:
 	void on_pushButton_clicked();
 	void on_ValidateButtonCanal_clicked();
 	void handleDeleteButtonClicked();
-	//void handleModifyButtonClicked();
+	void handleModifyButtonClicked(int idEquipement, const QString& nomEquipement, const QString& adresseEquipement, int nbCanalEquipement);
 
 
 private:
@@ -46,4 +47,7 @@ private:
 	QString m_selectedScene;
 	QList<QLineEdit*> m_lineEdits;
 	int numCanal;
+	int m_idEquipementASupprimer = -1; // Initialisé à -1 pour indiquer qu'aucun équipement n'est sélectionné initialement
+
+
 };
