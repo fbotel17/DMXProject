@@ -36,6 +36,7 @@ DMXProject::DMXProject(QWidget *parent)
 	afficherScenes();
 	afficherEquipements(); 
 	afficherScenesCheckbox();
+	Supprimer_un_equipement();
 }
 
 DMXProject::~DMXProject()
@@ -581,7 +582,7 @@ void DMXProject::clearForm()
 }
 
 
-void DMXProject::on_actionSupprimer_un_equipement_triggered()
+void DMXProject::Supprimer_un_equipement()
 {
 	// Créer un nouveau widget pour contenir les cases à cocher des équipements
 	QWidget* widget = new QWidget;

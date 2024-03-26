@@ -21,6 +21,7 @@ public:
 	int getSceneId(const QString& sceneName);
 	int getEquipmentCanalNumber(const QString& equipmentName, int canalNumber);
 	void clearForm();
+	void Supprimer_un_equipement();
 
 
 public slots:
