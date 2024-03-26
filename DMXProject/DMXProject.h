@@ -21,8 +21,8 @@ public:
 	int getSceneId(const QString& sceneName);
 	int getEquipmentCanalNumber(const QString& equipmentName, int canalNumber);
 	void clearForm();
+	void supprimerEquipement(int idEquipement);
 	void Supprimer_un_equipement();
-
 
 public slots:
 	void on_actionCreer_une_sc_ne_triggered();
@@ -35,6 +35,8 @@ public slots:
 	void on_validateButtonEquip_clicked();
 	void on_pushButton_clicked();
 	void on_ValidateButtonCanal_clicked();
+	void handleDeleteButtonClicked();
+	void handleModifyButtonClicked();
 
 
 private:

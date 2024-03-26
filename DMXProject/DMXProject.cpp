@@ -582,7 +582,6 @@ void DMXProject::clearForm()
 	m_lineEdits.clear();
 }
 
-
 void DMXProject::Supprimer_un_equipement()
 {
 	// Effacer tous les widgets précédents du layout
@@ -604,26 +603,44 @@ void DMXProject::Supprimer_un_equipement()
 	tableView->setModel(model);
 
 	// Définir les en-têtes de colonne
-	model->setHorizontalHeaderLabels(QStringList() << "Nom de l'équipement" << "Adresse" << "Nombre de Canal" << "Supprimer" << "Modifier");
+	model->setHorizontalHeaderLabels(QStringList() << "Nom de l'équipement" << "Adresse" << "Nombre de Canal" << "Modifier" << "Supprimer");
 
 	// Exécuter une requête pour récupérer tous les équipements existants
-	QSqlQuery query("SELECT nom, adresse, nbCanal FROM equipement");
+	QSqlQuery query("SELECT id, nom, adresse, nbCanal FROM equipement");
+
+	int row = 0; // Variable pour garder une trace du numéro de ligne
 
 	// Parcourir les résultats de la requête et ajouter chaque équipement en tant que ligne dans le modèle de tableau
 	while (query.next()) {
-		QString nomEquipement = query.value(0).toString();
-		QString adresseEquipement = query.value(1).toString();
-		int nbCanalEquipement = query.value(2).toInt();
+		int idEquipement = query.value(0).toInt();
+		QString nomEquipement = query.value(1).toString();
+		QString adresseEquipement = query.value(2).toString();
+		int nbCanalEquipement = query.value(3).toInt();
 
 		QList<QStandardItem*> rowData;
 		rowData << new QStandardItem(nomEquipement);
 		rowData << new QStandardItem(adresseEquipement);
 		rowData << new QStandardItem(QString::number(nbCanalEquipement));
-		// Laisser les deux autres colonnes vides pour Supprimer et Modifier
-		rowData << new QStandardItem("");
-		rowData << new QStandardItem("");
 
-		model->appendRow(rowData);
+		// Créer un bouton pour la quatrième colonne "Modifier"
+		//QPushButton* modifyButton = new QPushButton("Modifier");
+		//QObject::connect(modifyButton, &QPushButton::clicked, this, &DMXProject::handleModifyButtonClicked); // Connecter le signal clicked du bouton à une slot
+		//model->setItem(row, 3, new QStandardItem(""));
+		//tableView->setIndexWidget(model->index(row, 3), modifyButton);
+
+		// Créer un bouton pour la cinquième colonne "Supprimer"
+		QPushButton* deleteButton = new QPushButton("Supprimer");
+		deleteButton->setObjectName(QString::number(idEquipement)); // Utiliser l'ID de l'équipement comme nom d'objet
+		QObject::connect(deleteButton, &QPushButton::clicked, this, &DMXProject::handleDeleteButtonClicked); // Connecter le signal clicked du bouton à une slot
+		model->setItem(row, 4, new QStandardItem(""));
+		tableView->setIndexWidget(model->index(row, 4), deleteButton);
+
+		// Ajouter les autres données de l'équipement à la même ligne
+		for (int i = 0; i < rowData.size(); ++i) {
+			model->setItem(row, i, rowData[i]);
+		}
+
+		++row; // Incrémenter le numéro de ligne
 	}
 
 	// Redimensionner les colonnes pour qu'elles s'adaptent au contenu
@@ -641,3 +658,35 @@ void DMXProject::Supprimer_un_equipement()
 	// Afficher la page où se trouve le verticalLayout_3
 	ui.stackedWidget->setCurrentIndex(5);
 }
+
+
+
+void DMXProject::supprimerEquipement(int idEquipement)
+{
+	// Exécuter une requête pour supprimer l'équipement de la base de données
+	QSqlQuery query;
+	query.prepare("DELETE FROM equipement WHERE id = :id");
+	query.bindValue(":id", idEquipement);
+	if (query.exec()) {
+		qDebug() << "Équipement supprimé avec succès de la base de données.";
+	}
+	else {
+		qDebug() << "Erreur lors de la suppression de l'équipement :" << query.lastError().text();
+	}
+	Supprimer_un_equipement();
+}
+
+
+void DMXProject::handleDeleteButtonClicked()
+{
+	QPushButton* button = qobject_cast<QPushButton*>(sender()); // Récupérer le bouton qui a émis le signal
+	if (button) {
+		int idEquipement = button->objectName().toInt(); // Récupérer l'ID de l'équipement à partir du nom d'objet du bouton
+		// Appeler la fonction de suppression en passant l'ID de l'équipement à supprimer
+		supprimerEquipement(idEquipement);
+		Supprimer_un_equipement();
+	}
+}
+
+
+
