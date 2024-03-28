@@ -597,7 +597,7 @@ void DMXProject::clearForm()
 {
 	// Effacer le layout existant
 	QLayoutItem *child;
-	while ((child = ui.verticalLayout_18->takeAt(0)) != nullptr)
+	while ((child = ui.verticalLayout_17->takeAt(0)) != nullptr)
 	{
 		delete child->widget();
 		delete child;
@@ -701,8 +701,7 @@ void DMXProject::Supprimer_un_equipement()
 		// Réinitialiser l'ID de l'équipement à supprimer
 		m_idEquipementASupprimer = -1;
 
-		// Afficher la page où se trouve le verticalLayout_3
-		ui.stackedWidget->setCurrentIndex(5);
+		
 	
 }
 
