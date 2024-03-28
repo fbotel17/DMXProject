@@ -677,22 +677,42 @@ void DMXProject::Supprimer_un_equipement()
 	
 }
 
-
-
 void DMXProject::supprimerEquipement(int idEquipement)
 {
-	// Exécuter une requête pour supprimer l'équipement de la base de données
-	QSqlQuery query;
-	query.prepare("DELETE FROM equipement WHERE id = :id");
-	query.bindValue(":id", idEquipement);
-	if (query.exec()) {
-		qDebug() << "Équipement supprimé avec succès de la base de données.";
+	// Début de la transaction SQL
+	QSqlDatabase::database().transaction();
+
+	// Supprimer d'abord les enregistrements dans la table 'champ' liés à l'équipement à supprimer
+	QSqlQuery queryDeleteChamp;
+	queryDeleteChamp.prepare("DELETE FROM champ WHERE idEquip = :id");
+	queryDeleteChamp.bindValue(":id", idEquipement);
+	if (!queryDeleteChamp.exec()) {
+		qDebug() << "Erreur lors de la suppression des enregistrements dans la table champ :" << queryDeleteChamp.lastError().text();
+		// En cas d'erreur, annuler la transaction et sortir de la fonction
+		QSqlDatabase::database().rollback();
+		return;
 	}
-	else {
-		qDebug() << "Erreur lors de la suppression de l'équipement :" << query.lastError().text();
+
+	// Ensuite, supprimer l'équipement de la table 'equipement'
+	QSqlQuery queryDeleteEquipement;
+	queryDeleteEquipement.prepare("DELETE FROM equipement WHERE id = :id");
+	queryDeleteEquipement.bindValue(":id", idEquipement);
+	if (!queryDeleteEquipement.exec()) {
+		qDebug() << "Erreur lors de la suppression de l'équipement :" << queryDeleteEquipement.lastError().text();
+		// En cas d'erreur, annuler la transaction et sortir de la fonction
+		QSqlDatabase::database().rollback();
+		return;
 	}
+
+	// Valider la transaction SQL
+	QSqlDatabase::database().commit();
+
+	qDebug() << "Équipement supprimé avec succès de la base de données.";
+
+	// Actualiser l'affichage des équipements
 	Supprimer_un_equipement();
 }
+
 
 void DMXProject::handleDeleteButtonClicked()
 {
