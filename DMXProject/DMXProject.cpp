@@ -541,8 +541,6 @@ void DMXProject::on_ValidateButtonCanal_clicked()
 }
 
 
-
-
 int DMXProject::getEquipmentCanalNumber(const QString &equipmentName, int canalNumber)
 {
 	
@@ -566,9 +564,6 @@ int DMXProject::getEquipmentCanalNumber(const QString &equipmentName, int canalN
 }
 
 
-
-
-
 void DMXProject::clearForm()
 {
 	// Effacer le layout existant
@@ -584,12 +579,11 @@ void DMXProject::clearForm()
 }
 
 
-
-
-
 // Mettre à jour la méthode Supprimer_un_equipement pour utiliser la variable membre m_idEquipementASupprimer
 void DMXProject::Supprimer_un_equipement()
 {
+
+	
 	// Vérifier si un équipement doit être supprimé
 	
 		// Effacer tous les widgets précédents du layout
@@ -605,6 +599,10 @@ void DMXProject::Supprimer_un_equipement()
 
 		// Créer un nouveau QTableView
 		QTableView* tableView = new QTableView;
+
+		tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+		tableView->setSelectionMode(QAbstractItemView::NoSelection);
+		tableView->setSelectionBehavior(QAbstractItemView::SelectItems);
 
 		// Créer un modèle de tableau vide avec cinq colonnes
 		QStandardItemModel* model = new QStandardItemModel(0, 5);
