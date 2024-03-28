@@ -14,6 +14,7 @@
 #include <QTableWidgetItem>
 #include <QStandardItemModel>
 #include <QHeaderView>
+#include <QMessageBox>
 
 
 
@@ -695,40 +696,6 @@ void DMXProject::supprimerEquipement(int idEquipement)
 	Supprimer_un_equipement();
 }
 
-
-void DMXProject::handleModifyButtonClicked(int idEquipement, const QString& nomEquipement, const QString& adresseEquipement, int nbCanalEquipement)
-{
-	// Appeler la fonction de modification en passant les valeurs récupérées
-	modifierEquipement(idEquipement, nomEquipement, adresseEquipement, nbCanalEquipement);
-
-	// Stocker l'ID de l'équipement à supprimer
-	m_idEquipementASupprimer = idEquipement;
-
-	// Appeler la méthode Supprimer_un_equipement
-	Supprimer_un_equipement();
-}
-
-
-
-
-void DMXProject::modifierEquipement(int idEquipement, const QString& nomEquipement, const QString& adresseEquipement, int nbCanalEquipement)
-{
-    // Exécuter une requête pour mettre à jour l'équipement dans la base de données
-    QSqlQuery query;
-    query.prepare("UPDATE equipement SET nom = :nom, adresse = :adresse, nbCanal = :nbCanal WHERE id = :id");
-    query.bindValue(":nom", nomEquipement);
-    query.bindValue(":adresse", adresseEquipement);
-    query.bindValue(":nbCanal", nbCanalEquipement);
-    query.bindValue(":id", idEquipement);
-    if (query.exec()) {
-        qDebug() << "Équipement mis à jour avec succès dans la base de données.";
-    } else {
-        qDebug() << "Erreur lors de la mise à jour de l'équipement :" << query.lastError().text();
-    }
-}
-
-
-
 void DMXProject::handleDeleteButtonClicked()
 {
 	QPushButton* button = qobject_cast<QPushButton*>(sender()); // Récupérer le bouton qui a émis le signal
@@ -740,5 +707,82 @@ void DMXProject::handleDeleteButtonClicked()
 	}
 }
 
+void DMXProject::handleModifyButtonClicked(int idEquipement, const QString& nomEquipement, const QString& adresseEquipement, int nbCanalEquipement)
+{
+	// Création d'une boîte de dialogue pour modifier les informations de l'équipement
+	QDialog dialog(this);
+	dialog.setWindowTitle("Modifier équipement");
+
+	// Création des widgets pour saisir les nouvelles informations
+	QLabel* labelNom = new QLabel("Nom :", &dialog);
+	QLineEdit* lineEditNom = new QLineEdit(nomEquipement, &dialog);
+
+	QLabel* labelAdresse = new QLabel("Adresse :", &dialog);
+	QLineEdit* lineEditAdresse = new QLineEdit(adresseEquipement, &dialog);
+
+	QLabel* labelNbCanal = new QLabel("Nombre de canaux :", &dialog);
+	QSpinBox* spinBoxNbCanal = new QSpinBox(&dialog);
+	spinBoxNbCanal->setValue(nbCanalEquipement);
+
+	// Création du bouton de confirmation
+	QPushButton* buttonConfirm = new QPushButton("Confirmer", &dialog);
+	connect(buttonConfirm, &QPushButton::clicked, &dialog, &QDialog::accept);
+
+	// Création du layout pour organiser les widgets
+	QVBoxLayout* layout = new QVBoxLayout(&dialog);
+	layout->addWidget(labelNom);
+	layout->addWidget(lineEditNom);
+	layout->addWidget(labelAdresse);
+	layout->addWidget(lineEditAdresse);
+	layout->addWidget(labelNbCanal);
+	layout->addWidget(spinBoxNbCanal);
+	layout->addWidget(buttonConfirm);
+
+	// Affichage de la boîte de dialogue
+	if (dialog.exec() == QDialog::Accepted) {
+		// Récupérer les nouvelles valeurs saisies par l'utilisateur
+		QString nouveauNom = lineEditNom->text();
+		QString nouvelleAdresse = lineEditAdresse->text();
+		int nouveauNbCanal = spinBoxNbCanal->value();
+
+		// Appeler la fonction de modification avec les nouvelles valeurs
+		modifierEquipement(idEquipement, nouveauNom, nouvelleAdresse, nouveauNbCanal);
+		// Mettre à jour l'affichage des équipements
+		afficherEquipements();
+		Supprimer_un_equipement();
+
+	}
+}
 
 
+void DMXProject::modifierEquipement(int idEquipement, const QString& nomEquipement, const QString& adresseEquipement, int nbCanalEquipement)
+{
+	// Connexion à la base de données
+	QSqlDatabase db = QSqlDatabase::database();
+	if (!db.isValid()) {
+		qDebug() << "La base de données n'est pas valide.";
+		return;
+	}
+
+	if (!db.isOpen()) {
+		qDebug() << "La base de données n'est pas ouverte.";
+		return;
+	}
+
+	// Préparation de la requête SQL pour mettre à jour l'équipement
+	QSqlQuery query(db);
+	query.prepare("UPDATE `equipement` SET `nom` = :nom, `adresse` = :adresse, `nbCanal` = :nbCanal WHERE `id` = :id");
+	query.bindValue(":nom", nomEquipement);
+	query.bindValue(":adresse", adresseEquipement);
+	query.bindValue(":nbCanal", nbCanalEquipement);
+	query.bindValue(":id", idEquipement);
+
+	// Exécution de la requête
+	if (query.exec()) {
+		db.commit(); // Valider les modifications dans la base de données
+		qDebug() << "Équipement mis à jour avec succès dans la base de données.";
+	}
+	else {
+		qDebug() << "Erreur lors de la mise à jour de l'équipement :" << query.lastError().text();
+	}
+}
