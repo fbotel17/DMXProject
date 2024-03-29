@@ -40,7 +40,7 @@ DMXProject::DMXProject(QWidget *parent)
 	afficherScenes();
 	afficherEquipements(); 
 	afficherScenesCheckbox();
-	Supprimer_un_equipement();
+	Gerer_un_equipement();
 }
 
 DMXProject::~DMXProject()
@@ -52,6 +52,16 @@ void DMXProject::on_pushButtonValider_clicked()
 	QString nomScene = ui.lineEditNomScene->text();
 
 	// Exécuter une requête SQL pour insérer les données dans la table scene
+	insertScene(nomScene);
+
+	ui.listWidget->clear();
+
+	afficherScenes();
+
+}
+
+void DMXProject::insertScene(QString nomScene)
+{
 	QSqlQuery query;
 	query.prepare("INSERT INTO scene (nom) VALUES (:nom)");
 	query.bindValue(":nom", nomScene);
@@ -64,12 +74,9 @@ void DMXProject::on_pushButtonValider_clicked()
 		qDebug() << "Erreur lors de l'insertion de la scène:" << query.lastError().text();
 		// Gérer les erreurs d'insertion ici
 	}
-
-	ui.listWidget->clear();
-
-	afficherScenes();
-
 }
+
+
 
 void DMXProject::on_actionCreer_une_sc_ne_triggered()
 {
@@ -90,7 +97,7 @@ void DMXProject::on_actionAjouter_un_equipement_triggered()
 
 void DMXProject::on_actionSupprimer_un_equipement_triggered()
 {
-	Supprimer_un_equipement();
+	Gerer_un_equipement();
 	ui.stackedWidget->setCurrentIndex(5);
 }
 
@@ -163,6 +170,11 @@ void DMXProject::on_buttonEquip_clicked() {
 	int startChannelAddress = ui.adresseEquipEdit->text().toInt(); // Convertir le texte en entier
 	int nbCanaux = ui.nbCannauxEdit->text().toInt(); // Convertir le texte en entier
 	createChannelLabelsAndLineEdits(nbCanaux, startChannelAddress);
+
+	insertEquipement(nomEquipement, adresseEquipement, nbCanaux);
+}
+
+void DMXProject::insertEquipement(QString nomEquipement, QString adresseEquipement, int nbCanaux) {
 
 	QSqlQuery query;
 	query.prepare("INSERT INTO equipement (nom, adresse, nbCanal) VALUES (:nom, :adresse, :nbCanal)");
@@ -437,6 +449,7 @@ void DMXProject::createFormForSelectedEquipements(const QList<QString>& selected
 		}
 	}
 
+
 }
 
 void DMXProject::insertChannelData(int idScene, QList<QPair<int, int>> channelData)
@@ -609,7 +622,7 @@ void DMXProject::clearForm()
 
 
 // Mettre à jour la méthode Supprimer_un_equipement pour utiliser la variable membre m_idEquipementASupprimer
-void DMXProject::Supprimer_un_equipement()
+void DMXProject::Gerer_un_equipement()
 {
 
 	
@@ -738,7 +751,7 @@ void DMXProject::supprimerEquipement(int idEquipement)
 	qDebug() << "Équipement supprimé avec succès de la base de données.";
 
 	// Actualiser l'affichage des équipements
-	Supprimer_un_equipement();
+	Gerer_un_equipement();
 }
 
 
@@ -749,7 +762,7 @@ void DMXProject::handleDeleteButtonClicked()
 		int idEquipement = button->objectName().toInt(); // Récupérer l'ID de l'équipement à partir du nom d'objet du bouton
 		// Appeler la fonction de suppression en passant l'ID de l'équipement à supprimer
 		supprimerEquipement(idEquipement);
-		Supprimer_un_equipement();
+		Gerer_un_equipement();
 	}
 }
 
@@ -795,7 +808,7 @@ void DMXProject::handleModifyButtonClicked(int idEquipement, const QString& nomE
 		modifierEquipement(idEquipement, nouveauNom, nouvelleAdresse, nouveauNbCanal);
 		// Mettre à jour l'affichage des équipements
 		afficherEquipements();
-		Supprimer_un_equipement();
+		Gerer_un_equipement();
 
 	}
 }
