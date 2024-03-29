@@ -2,6 +2,7 @@
 #include <QSerialPort>
 #include <QSerialPortInfo>
 #include <QDebug>
+#include <QRegularExpression>
 
 int main(int argc, char* argv[]) {
     QCoreApplication a(argc, argv);
@@ -17,7 +18,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (portName.isEmpty()) {
-        qDebug() << "Aucun port série correspondant a Arduino trouve.";
+        qDebug() << "Aucun port serie correspondant a Arduino trouve.";
         return 1;
     }
 
@@ -27,7 +28,7 @@ int main(int argc, char* argv[]) {
     serial.setBaudRate(QSerialPort::Baud9600);
     if (!serial.open(QIODevice::ReadOnly)) {
         qDebug() << "Erreur: Impossible d'ouvrir le port serie.";
-        return 1; 
+        return 1;
     }
     else {
         qDebug() << "Port serie ouvert avec succes.";
@@ -35,6 +36,8 @@ int main(int argc, char* argv[]) {
 
     // Lecture des données de la liaison série jusqu'à ce que l'application se termine
     QString receivedData; // Variable pour stocker les données reçues
+
+   
 
     QObject::connect(&serial, &QSerialPort::readyRead, [&]() {
         QByteArray newData = serial.readAll(); // Lire les nouvelles données
@@ -46,16 +49,26 @@ int main(int argc, char* argv[]) {
             QString voltageString = receivedData.left(newlineIndex).trimmed(); // Extraire la ligne complète
             receivedData = receivedData.mid(newlineIndex + 1); // Supprimer la ligne complète des données reçues
 
-            bool ok;
-            double voltage = voltageString.toDouble(&ok); // Convertir la chaîne en double
-            if (ok) {
-                qDebug() << "Voltage reçu depuis l Arduino : " << voltageString;
+            // Extraire uniquement la partie numérique de la chaîne de caractères
+            int indexOfSpace = voltageString.indexOf(' ');
+            if (indexOfSpace != -1) {
+                voltageString = voltageString.mid(indexOfSpace + 1);
+            }
+
+            QRegularExpression regex("^-?[0-9]*\\.?[0-9]+(?:e[0-9]+)?$"); // Expression régulière pour vérifier le format du nombre à virgule flottante
+            if (regex.match(voltageString).hasMatch()) {
+                bool ok;
+                double voltage = voltageString.toDouble(&ok); // Convertir la chaîne en double
+                if (ok) {
+                    qDebug() << "Voltage recu depuis l Arduino : " << voltageString;
+                }
             }
             else {
-                qDebug() << "Voltage recu depuis l Arduino  : " << voltageString;
+                qDebug() << "Erreur de format de donnees : " << voltageString;
             }
         }
         });
+
 
 
     return a.exec();
