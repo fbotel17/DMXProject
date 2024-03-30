@@ -23,7 +23,7 @@ DMXProject::DMXProject(QWidget *parent)
 {
     ui.setupUi(this);
 	QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
-	db.setHostName("192.168.64.213");
+	db.setHostName("192.168.1.59");
 	db.setDatabaseName("testCodeDMX");
 	db.setUserName("root");
 	db.setPassword("root");
@@ -76,7 +76,24 @@ void DMXProject::insertScene(QString nomScene)
 	}
 }
 
+void DMXProject::updateScene(QString oldNomScene, QString newNomScene)
+{
+	QSqlQuery query;
+	query.prepare("UPDATE scene SET nom = (:newNom) WHERE nom = (:oldNom)");
+	query.bindValue(":newNom", newNomScene);
+	query.bindValue(":oldNom", oldNomScene);
 
+
+
+	if (query.exec()) {
+		qDebug() << "Scène modifiée avec succès!";
+		// Faire quelque chose après l'insertion réussie, si nécessaire
+	}
+	else {
+		qDebug() << "Erreur lors de la modification de la scène:" << query.lastError().text();
+		// Gérer les erreurs d'insertion ici
+	}
+}
 
 void DMXProject::on_actionCreer_une_sc_ne_triggered()
 {
