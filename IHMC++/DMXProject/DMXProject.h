@@ -27,6 +27,8 @@ public:
 	void insertEquipement(QString nomEquipement, QString adresseEquipement, int nbCanaux);
 	void insertScene(QString nomScene);
 	void updateScene(QString oldNomScene, QString newNomScene);
+	
+
 
 public slots:
 	void on_actionCreer_une_sc_ne_triggered();
@@ -42,6 +44,8 @@ public slots:
 	void handleDeleteButtonClicked();
 	void handleModifyButtonClicked(int idEquipement, const QString& nomEquipement, const QString& adresseEquipement, int nbCanalEquipement);
 
+	void updateUi(int);
+	void saveSettings();
 
 private:
 	Ui::DMXProjectClass ui;
@@ -55,3 +59,4 @@ private:
 
 
 };
+

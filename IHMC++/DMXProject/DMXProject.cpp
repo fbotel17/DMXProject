@@ -15,6 +15,8 @@
 #include <QStandardItemModel>
 #include <QHeaderView>
 #include <QMessageBox>
+#include <QWizard>
+
 
 
 
@@ -411,63 +413,52 @@ void DMXProject::on_pushButton_clicked()
 void DMXProject::createFormForSelectedEquipements(const QList<QString>& selectedEquipements, const QString& selectedScene)
 {
 	clearForm();
-	// Effacer le layout verticalLayout_18
-	QLayoutItem* child;
-	while ((child = ui.verticalLayout_18->takeAt(0)) != nullptr)
-	{
-		delete child->widget();
-		delete child;
-	}
 
-	// Récupérer les informations sur les canaux pour chaque équipement sélectionné
-	QString joinedEquipementNames = selectedEquipements.join("','");
-	QSqlQuery query(QString("SELECT e.nom, c.idNumCanal, c.nom AS canalNom "
-		"FROM equipement e "
-		"JOIN champ c ON e.id = c.idEquip "
-		"WHERE e.nom IN ('%1') "
-		"ORDER BY e.nom, c.idNumCanal").arg(joinedEquipementNames));
+	// Créer un QWizard pour configurer les canaux de chaque équipement dans la scène
+	QWizard* wizard = new QWizard(this);
 
-	QMap<QString, QList<QPair<int, QString>>> equipementCanaux;
-	while (query.next())
-	{
-		QString equipementName = query.value(0).toString();
-		int canalId = query.value(1).toInt();
-		QString canalNom = query.value(2).toString();
-
-		if (!equipementCanaux.contains(equipementName))
-		{
-			equipementCanaux[equipementName] = QList<QPair<int, QString>>();
-		}
-
-		equipementCanaux[equipementName].append(qMakePair(canalId, canalNom));
-	}
-
-	// Créer les QLabel et QLineEdit pour chaque canal des équipements sélectionnés
+	// Créer une page pour chaque équipement sélectionné
 	for (const QString& equipementName : selectedEquipements)
 	{
-		QList<QPair<int, QString>> canaux = equipementCanaux[equipementName];
-		for (const QPair<int, QString>& canal : canaux)
-		{
-			QLabel* label = new QLabel(canal.second + " :");
-			int idNumCanal = getEquipmentCanalNumber(equipementName, canal.first); // Appel de la méthode getEquipmentCanalNumber
-			numCanal = canal.first;
-			if (idNumCanal != -1)
-			{
-				label->setText(QString("Nom du canal %1 :").arg(idNumCanal)); // Utilisation du numéro de canal récupéré
-			}
-			else
-			{
-				qDebug() << "Erreur : impossible de récupérer le numéro de canal pour l'équipement" << equipementName;
-			}
+		QWizardPage* page = new QWizardPage(this);
+		QVBoxLayout* layout = new QVBoxLayout(page);
+		layout->addWidget(new QLabel(QString("Configurer les canaux pour %1 :").arg(equipementName), page));
 
-			QLineEdit* lineEdit = new QLineEdit;
-			ui.verticalLayout_18->addWidget(label);
-			ui.verticalLayout_18->addWidget(lineEdit);
+		// Récupérer les informations sur les canaux pour cet équipement
+		QSqlQuery query(QString("SELECT idNumCanal, nom FROM champ WHERE idEquip = (SELECT id FROM equipement WHERE nom = '%1') ORDER BY idNumCanal").arg(equipementName));
+
+		// Ajouter des widgets pour chaque canal de cet équipement
+		QList<QPair<int, int>> channelData; // Ajouter une liste de paires pour stocker les valeurs des QSpinBox
+		while (query.next())
+		{
+			QString canalName = query.value(1).toString();
+			int canalNumber = query.value(0).toInt();
+			QLabel* label = new QLabel(QString("%1 :").arg(canalName), page);
+			QSpinBox* spinBox = new QSpinBox(page);
+			spinBox->setObjectName(QString("spinBox_%1").arg(canalNumber));
+			layout->addWidget(label);
+			layout->addWidget(spinBox);
+
+			// Ajouter la valeur du QSpinBox à la liste channelData
+			channelData.append(qMakePair(canalNumber, spinBox->value()));
 		}
+
+		// Ajouter la liste channelData à la page du QWizard
+		page->setProperty("channelData", QVariant::fromValue(channelData));
+
+		wizard->addPage(page);
 	}
 
+	
 
+	// Connecter le signal accepted() du QWizard à un slot pour enregistrer les paramètres de canal dans la base de données
+	connect(wizard, SIGNAL(accepted()), this, SLOT(saveSettings()));
+
+	// Afficher le QWizard
+	wizard->show();
 }
+
+
 
 void DMXProject::insertChannelData(int idScene, QList<QPair<int, int>> channelData)
 {
@@ -862,3 +853,100 @@ void DMXProject::modifierEquipement(int idEquipement, const QString& nomEquipeme
 		qDebug() << "Erreur lors de la mise à jour de l'équipement :" << query.lastError().text();
 	}
 }
+
+void DMXProject::updateUi(int pageId)
+{
+	// Récupérer la page actuelle du QWizard
+	QWidget* page = qobject_cast<QWidget*>(sender()->property("currentPage").value<QObject*>());
+
+	// Récupérer le nom de l'équipement correspondant à la page actuelle
+	QString equipementName = page->findChild<QLabel*>()->text().section(' ', 1, 1);
+
+	// Mettre à jour l'interface utilisateur en fonction de l'équipement sélectionné
+	// ...
+}
+
+void DMXProject::saveSettings()
+{
+	// Récupérer l'ID de la scène sélectionnée
+	int idScene = getSceneId(m_selectedScene);
+
+	QWizard* wizard = qobject_cast<QWizard*>(sender());
+	if (wizard) {
+		QList<QWizardPage*> pages = wizard->findChildren<QWizardPage*>();
+		for (QList<QWizardPage*>::iterator it = pages.begin(); it != pages.end(); ++it) {
+			QWizardPage* page = *it;
+
+			// Récupérer les valeurs actuelles des QSpinBox dans la page actuelle
+			QList<QPair<int, int>> channelData;
+			QList<QSpinBox*> spinBoxes = page->findChildren<QSpinBox*>();
+			for (QSpinBox* spinBox : spinBoxes) {
+				// Récupérer le numéro de canal à partir du nom d'objet du QSpinBox
+				QString objectName = spinBox->objectName();
+				int index = objectName.lastIndexOf('_');
+				int numCanal = objectName.mid(index + 1).toInt();
+
+				// Récupérer la valeur actuelle du QSpinBox
+				int valeur = spinBox->value();
+
+				// Ajouter la paire (numCanal, valeur) à la liste channelData
+				channelData.append(qMakePair(numCanal, valeur));
+			}
+
+			// Enregistrer les paramètres de canal pour cet équipement dans la base de données
+			QSqlQuery query;
+			query.prepare("INSERT INTO canaux (idScene, numCanal, valeur) VALUES (:idScene, :numCanal, :valeur)");
+			query.bindValue(":idScene", idScene);
+			for (const auto& channel : channelData)
+			{
+				int numCanal = channel.first;
+				int valeur = channel.second;
+
+				// Vérifier si le numéro de canal existe dans la table champ
+				QSqlQuery checkQuery;
+				checkQuery.prepare("SELECT COUNT(*) FROM champ WHERE idNumCanal = :numCanal");
+				checkQuery.bindValue(":numCanal", numCanal);
+				if (checkQuery.exec() && checkQuery.next()) {
+					int count = checkQuery.value(0).toInt();
+					if (count == 0) {
+						qDebug() << "Le numéro de canal" << numCanal << "n'existe pas dans la table champ.";
+						continue; // Ignorer cette insertion
+					}
+				}
+				else {
+					qDebug() << "Erreur lors de la vérification de l'existence du numéro de canal" << numCanal << ":" << checkQuery.lastError().text();
+					continue; // Ignorer cette insertion
+				}
+
+				// Mettre à jour la valeur du QSpinBox correspondant à ce numéro de canal
+				QSpinBox* spinBox = page->findChild<QSpinBox*>(QString("spinBox_%1").arg(numCanal));
+				if (spinBox) {
+					spinBox->setValue(valeur);
+				}
+
+				query.bindValue(":numCanal", numCanal);
+				query.bindValue(":valeur", valeur);
+
+				if (!query.exec())
+				{
+					qDebug() << "Erreur lors de l'insertion des données dans la table 'canaux' : " << query.lastError().text();
+				}
+			}
+		}
+	}
+
+	// Fermer le QWizard
+	qobject_cast<QWizard*>(sender())->close();
+}
+
+
+
+
+
+
+
+
+
+
+
+
