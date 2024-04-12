@@ -25,7 +25,7 @@ DMXProject::DMXProject(QWidget *parent)
 {
     ui.setupUi(this);
 	QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
-	db.setHostName("192.168.1.59");
+	db.setHostName("192.168.64.213");
 	db.setDatabaseName("testCodeDMX");
 	db.setUserName("root");
 	db.setPassword("root");
@@ -436,6 +436,7 @@ void DMXProject::createFormForSelectedEquipements(const QList<QString>& selected
 			QLabel* label = new QLabel(QString("%1 :").arg(canalName), page);
 			QSpinBox* spinBox = new QSpinBox(page);
 			spinBox->setObjectName(QString("spinBox_%1").arg(canalNumber));
+			spinBox->setMaximum(255); // Définir la valeur maximale du QSpinBox à 255
 			layout->addWidget(label);
 			layout->addWidget(spinBox);
 
@@ -449,8 +450,6 @@ void DMXProject::createFormForSelectedEquipements(const QList<QString>& selected
 		wizard->addPage(page);
 	}
 
-	
-
 	// Connecter le signal accepted() du QWizard à un slot pour enregistrer les paramètres de canal dans la base de données
 	connect(wizard, SIGNAL(accepted()), this, SLOT(saveSettings()));
 
@@ -459,43 +458,6 @@ void DMXProject::createFormForSelectedEquipements(const QList<QString>& selected
 }
 
 
-
-void DMXProject::insertChannelData(int idScene, QList<QPair<int, int>> channelData)
-{
-	QSqlQuery query;
-
-	for (const auto& channel : channelData)
-	{
-		int numCanal = channel.first;
-		int valeur = channel.second;
-
-		// Vérifier si le numéro de canal existe dans la table champ
-		QSqlQuery checkQuery;
-		checkQuery.prepare("SELECT COUNT(*) FROM champ WHERE idNumCanal = :numCanal");
-		checkQuery.bindValue(":numCanal", numCanal);
-		if (checkQuery.exec() && checkQuery.next()) {
-			int count = checkQuery.value(0).toInt();
-			if (count == 0) {
-				qDebug() << "Le numéro de canal" << numCanal << "n'existe pas dans la table champ.";
-				continue; // Ignorer cette insertion
-			}
-		}
-		else {
-			qDebug() << "Erreur lors de la vérification de l'existence du numéro de canal" << numCanal << ":" << checkQuery.lastError().text();
-			continue; // Ignorer cette insertion
-		}
-
-		query.prepare("INSERT INTO canaux (numCanal, idScene, valeur) VALUES (:numCanal, :idScene, :valeur)");
-		query.bindValue(":numCanal", numCanal);
-		query.bindValue(":idScene", idScene);
-		query.bindValue(":valeur", valeur);
-
-		if (!query.exec())
-		{
-			qDebug() << "Erreur lors de l'insertion des données dans la table 'canaux' : " << query.lastError().text();
-		}
-	}
-}
 
 int DMXProject::getEquipmentId(const QString &equipmentName)
 {
@@ -530,63 +492,6 @@ int DMXProject::getSceneId(const QString &sceneName)
 		qDebug() << "Erreur lors de la récupération de l'ID de la scène : " << query.lastError().text();
 		return -1;
 	}
-}
-
-void DMXProject::on_ValidateButtonCanal_clicked()
-{
-	// Récupérer l'ID de la scène sélectionnée
-	int idScene = getSceneId(m_selectedScene);
-	if (idScene == -1)
-	{
-		qDebug() << "Erreur : impossible de récupérer l'ID de la scène.";
-		return;
-	}
-
-	// Récupérer les données des canaux pour l'équipement actuel
-	QList<QPair<int, int>> channelData;
-	QLayoutItem* child;
-	int channelDataSize = 0; // Initialiser la variable pour stocker la taille de channelData
-	while ((child = ui.verticalLayout_18->takeAt(0)) != nullptr)
-	{
-		QLineEdit* lineEdit = qobject_cast<QLineEdit*>(child->widget());
-		if (lineEdit)
-		{
-			QString text = lineEdit->text();
-
-			// Convertir le texte en entier
-			bool conversionOk;
-			int value = text.toInt(&conversionOk);
-
-			// Vérifier si la conversion a réussi
-			if (conversionOk)
-			{
-				// Utiliser la valeur convertie ici
-				channelData.append(qMakePair(0, value)); // Le numéro du canal sera ajusté plus tard
-				channelDataSize++; // Incrémenter la taille de la liste
-			}
-			else
-			{
-				// Gérer le cas où la conversion échoue
-				qDebug() << "La conversion a échoué. Le texte n'est pas un entier valide :" << text;
-				// Ajouter une valeur par défaut
-				channelData.append(qMakePair(0, 0));
-				channelDataSize++; // Incrémenter la taille de la liste
-			}
-		}
-		delete child;
-	}
-
-	// Calculer le numéro du premier canal en soustrayant la taille de channelData de numCanal
-	int currentChannelNumber = numCanal - channelDataSize +1;
-
-	// Mettre à jour les numéros de canal dans channelData avec les valeurs calculées
-	for (int i = 0; i < channelData.size(); ++i)
-	{
-		channelData[i].first = currentChannelNumber++;
-	}
-
-	// Insérer les données des canaux dans la table "canaux"
-	insertChannelData(idScene, channelData);
 }
 
 
@@ -632,8 +537,6 @@ void DMXProject::clearForm()
 // Mettre à jour la méthode Supprimer_un_equipement pour utiliser la variable membre m_idEquipementASupprimer
 void DMXProject::Gerer_un_equipement()
 {
-
-	
 	// Vérifier si un équipement doit être supprimé
 	
 		// Effacer tous les widgets précédents du layout
@@ -722,8 +625,6 @@ void DMXProject::Gerer_un_equipement()
 		// Réinitialiser l'ID de l'équipement à supprimer
 		m_idEquipementASupprimer = -1;
 
-		
-	
 }
 
 void DMXProject::supprimerEquipement(int idEquipement)
@@ -854,17 +755,7 @@ void DMXProject::modifierEquipement(int idEquipement, const QString& nomEquipeme
 	}
 }
 
-void DMXProject::updateUi(int pageId)
-{
-	// Récupérer la page actuelle du QWizard
-	QWidget* page = qobject_cast<QWidget*>(sender()->property("currentPage").value<QObject*>());
 
-	// Récupérer le nom de l'équipement correspondant à la page actuelle
-	QString equipementName = page->findChild<QLabel*>()->text().section(' ', 1, 1);
-
-	// Mettre à jour l'interface utilisateur en fonction de l'équipement sélectionné
-	// ...
-}
 
 void DMXProject::saveSettings()
 {
