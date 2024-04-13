@@ -46,6 +46,12 @@
     <ClCompile Include="Equipement.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Canal.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Champ.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Scene.h">
@@ -54,5 +60,13 @@
     <ClInclude Include="Equipement.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Champ.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="Canal.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
 </Project>

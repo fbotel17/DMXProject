@@ -83,6 +83,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Canal.cpp" />
+    <ClCompile Include="Champ.cpp" />
     <ClCompile Include="Equipement.cpp" />
     <ClCompile Include="Scene.cpp" />
     <QtRcc Include="DMXProject.qrc" />
@@ -92,6 +94,8 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="Canal.h" />
+    <ClInclude Include="Champ.h" />
     <ClInclude Include="Equipement.h" />
     <ClInclude Include="Scene.h" />
   </ItemGroup>

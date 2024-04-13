@@ -34,9 +34,11 @@ DMXProject::DMXProject(QWidget *parent)
 		return;
 	}
 
+
 	// Afficher toutes les scènes existantes
 	scene->afficherScenes(ui.listWidget);
 	equipement->afficherEquipements(ui.verticalLayoutEquipements);
+
 	afficherScenesCheckbox();
 	Gerer_un_equipement();
 }
@@ -199,16 +201,8 @@ void DMXProject::on_validateButtonEquip_clicked() {
 		QLineEdit *lineEdit = dynamic_cast<QLineEdit*>(child->widget());
 		if (lineEdit) {
 			QString nom = lineEdit->text();
-
-			// Insérer les données dans la table "champ"
-			query.prepare("INSERT INTO champ (idEquip, idNumCanal, nom) VALUES (:idEquip, :idNumCanal, :nom)");
-			query.bindValue(":idEquip", idEquip);
-			query.bindValue(":idNumCanal", idNumCanal);
-			query.bindValue(":nom", nom);
-
-			if (!query.exec()) {
-				qDebug() << "Erreur lors de l'insertion des données dans la table 'champ' : " << query.lastError().text();
-			}
+			champ->insertChamp(idEquip, idNumCanal, nom);
+			
 
 			idNumCanal++; // Incrémenter idNumCanal pour le prochain enregistrement
 		}
@@ -509,10 +503,9 @@ void DMXProject::handleModifyButtonClicked(int idEquipement, const QString& nomE
 }
 
 
-void DMXProject::saveSettings()
-{
+void DMXProject::saveSettings() {
 	// Récupérer l'ID de la scène sélectionnée
-	int idScene =  scene->getSceneId(m_selectedScene); //getSceneId(m_selectedScene);
+	int idScene = scene->getSceneId(m_selectedScene); //getSceneId(m_selectedScene);
 
 	QWizard* wizard = qobject_cast<QWizard*>(sender());
 	if (wizard) {
@@ -537,44 +530,7 @@ void DMXProject::saveSettings()
 			}
 
 			// Enregistrer les paramètres de canal pour cet équipement dans la base de données
-			QSqlQuery query;
-			query.prepare("INSERT INTO canaux (idScene, numCanal, valeur) VALUES (:idScene, :numCanal, :valeur)");
-			query.bindValue(":idScene", idScene);
-			for (const auto& channel : channelData)
-			{
-				int numCanal = channel.first;
-				int valeur = channel.second;
-
-				// Vérifier si le numéro de canal existe dans la table champ
-				QSqlQuery checkQuery;
-				checkQuery.prepare("SELECT COUNT(*) FROM champ WHERE idNumCanal = :numCanal");
-				checkQuery.bindValue(":numCanal", numCanal);
-				if (checkQuery.exec() && checkQuery.next()) {
-					int count = checkQuery.value(0).toInt();
-					if (count == 0) {
-						qDebug() << "Le numéro de canal" << numCanal << "n'existe pas dans la table champ.";
-						continue; // Ignorer cette insertion
-					}
-				}
-				else {
-					qDebug() << "Erreur lors de la vérification de l'existence du numéro de canal" << numCanal << ":" << checkQuery.lastError().text();
-					continue; // Ignorer cette insertion
-				}
-
-				// Mettre à jour la valeur du QSpinBox correspondant à ce numéro de canal
-				QSpinBox* spinBox = page->findChild<QSpinBox*>(QString("spinBox_%1").arg(numCanal));
-				if (spinBox) {
-					spinBox->setValue(valeur);
-				}
-
-				query.bindValue(":numCanal", numCanal);
-				query.bindValue(":valeur", valeur);
-
-				if (!query.exec())
-				{
-					qDebug() << "Erreur lors de l'insertion des données dans la table 'canaux' : " << query.lastError().text();
-				}
-			}
+			canal->insertCanal(idScene, channelData);
 		}
 	}
 

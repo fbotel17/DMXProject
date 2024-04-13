@@ -4,7 +4,8 @@
 #include "ui_DMXProject.h"
 #include "Scene.h"
 #include "Equipement.h"
-
+#include "Canal.h"
+#include "Champ.h"
 
 class DMXProject : public QMainWindow
 {
@@ -53,7 +54,8 @@ private:
 	QList<QString> m_selectedEquipements;
 	Scene* scene;
 	Equipement* equipement;
-
+	Canal* canal;
+	Champ* champ;
 
 
 };
