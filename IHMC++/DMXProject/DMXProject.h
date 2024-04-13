@@ -2,6 +2,9 @@
 
 #include <QtWidgets/QMainWindow>
 #include "ui_DMXProject.h"
+#include "Scene.h"
+#include "Equipement.h"
+
 
 class DMXProject : public QMainWindow
 {
@@ -10,23 +13,15 @@ class DMXProject : public QMainWindow
 public:
 	DMXProject(QWidget* parent = nullptr);
 	~DMXProject();
-	void afficherScenes();
-	void afficherEquipements();
+
 	void afficherScenesCheckbox();
 	void createChannelLabelsAndLineEdits(int channelCount, int numCanal);
 	void createFormForSelectedEquipements(const QList<QString>& selectedEquipements, const QString& selectedScene);
 
-	//void insertChannelData(int idScene, QList<QPair<int, int>> channelData);
-	int getEquipmentId(const QString& equipmentName);
-	int getSceneId(const QString& sceneName);
-	int getEquipmentCanalNumber(const QString& equipmentName, int canalNumber);
+
+
 	void clearForm();
-	void supprimerEquipement(int idEquipement);
 	void Gerer_un_equipement();
-	void modifierEquipement(int idEquipement, const QString& nomEquipement, const QString& adresseEquipement, int nbCanalEquipement);
-	void insertEquipement(QString nomEquipement, QString adresseEquipement, int nbCanaux);
-	void insertScene(QString nomScene);
-	void updateScene(QString oldNomScene, QString newNomScene);
 	
 
 
@@ -56,6 +51,9 @@ private:
 	int numCanal;
 	int m_idEquipementASupprimer = -1; // Initialisé à -1 pour indiquer qu'aucun équipement n'est sélectionné initialement
 	QList<QString> m_selectedEquipements;
+	Scene* scene;
+	Equipement* equipement;
+
 
 
 };

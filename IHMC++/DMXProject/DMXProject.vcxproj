@@ -83,11 +83,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Equipement.cpp" />
+    <ClCompile Include="Scene.cpp" />
     <QtRcc Include="DMXProject.qrc" />
     <QtUic Include="DMXProject.ui" />
     <QtMoc Include="DMXProject.h" />
     <ClCompile Include="DMXProject.cpp" />
     <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Equipement.h" />
+    <ClInclude Include="Scene.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
