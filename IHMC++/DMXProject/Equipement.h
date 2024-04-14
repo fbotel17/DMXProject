@@ -24,12 +24,8 @@ class DMXProject;
 
 class Equipement
 {
-public:
-    int id;
-    QString nom;
-    QString adresse;
-    int nbCanaux;
 
+public:
     Equipement();
     Equipement(int id, const QString& nom, const QString& adresse, int nbCanaux);
 
@@ -39,6 +35,24 @@ public:
     void afficherEquipements(QVBoxLayout* mainLayoutEquipements);
     int getEquipmentId(const QString& equipmentName);
     void supprimerEquipement(int idEquipement, DMXProject* dmx);
+
+    int getId() const;
+    void setId(int id);
+
+    QString getNom() const;
+    void setNom(const QString& nom);
+
+    QString getAdresse() const;
+    void setAdresse(const QString& adresse);
+
+    int getNbCanaux() const;
+    void setNbCanaux(int nbCanaux);
+
+private:
+    int id;
+    QString nom;
+    QString adresse;
+    int nbCanaux;
 
 };
 

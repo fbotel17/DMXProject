@@ -20,6 +20,8 @@
 #include <QMessageBox>
 #include <QWizard>
 
+
+
 class Canal : public QObject
 {
     Q_OBJECT
@@ -27,7 +29,28 @@ class Canal : public QObject
 public:
     Canal();
 
+    int getId() const;
+    void setId(int id);
+
+    int getIdEquip() const;
+    void setIdEquip(int idEquip);
+
+    int getNumCanal() const;
+    void setNumCanal(int numCanal);
+
+    QString getNom() const;
+    void setNom(const QString& nom);
+
     void insertCanal(int idScene, const QList<QPair<int, int>>& channelData);
+    void updateCanal(int id, int idEquip, int numCanal, const QString& nom);
+    QList<Canal> getAllCanaux();
+    QList<Canal> getCanauxByEquipmentId(int idEquip);
+
+private:
+    int id;
+    int idEquip;
+    int numCanal;
+    QString nom;
 };
 
 #endif // CANAL_H

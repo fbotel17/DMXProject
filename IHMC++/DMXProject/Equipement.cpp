@@ -3,10 +3,18 @@
 
 Equipement::Equipement()
 {
+    id = -1;
+    nom = "";
+    adresse = "";
+    nbCanaux = 0;
 }
 
-Equipement::Equipement(int id, const QString& nom, const QString& adresse, int nbCanaux) : id(id), nom(nom), adresse(adresse), nbCanaux(nbCanaux)
+Equipement::Equipement(int id, const QString& nom, const QString& adresse, int nbCanaux)
 {
+    this->id = id;
+    this->nom = nom;
+    this->adresse = adresse;
+    this->nbCanaux = nbCanaux;
 }
 
 void Equipement::insertEquipement(const QString& nomEquipement, const QString& adresseEquipement, int nbCanaux)
@@ -172,3 +180,42 @@ int Equipement::getEquipmentId(const QString& equipmentName)
     }
 }
 
+int Equipement::getId() const
+{
+    return id;
+}
+
+void Equipement::setId(int id)
+{
+    this->id = id;
+}
+
+QString Equipement::getNom() const
+{
+    return nom;
+}
+
+void Equipement::setNom(const QString& nom)
+{
+    this->nom = nom;
+}
+
+QString Equipement::getAdresse() const
+{
+    return adresse;
+}
+
+void Equipement::setAdresse(const QString& adresse)
+{
+    this->adresse = adresse;
+}
+
+int Equipement::getNbCanaux() const
+{
+    return nbCanaux;
+}
+
+void Equipement::setNbCanaux(int nbCanaux)
+{
+    this->nbCanaux = nbCanaux;
+}
