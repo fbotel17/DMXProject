@@ -23,17 +23,26 @@
 class Scene
 {
 public:
-    int id;
-    QString nom;
+    
 
     Scene();
     Scene(int id, const QString& nom);
+
+    int getId() const;
+    void setId(int id);
+
+    QString getNom() const;
+    void setNom(const QString& nom);
 
     void insertScene(const QString& nomScene);
     void updateScene(const QString& oldNomScene, const QString& newNomScene);
     QList<Scene> getAllScenes();
     void afficherScenes(QListWidget* listWidget);
     int getSceneId(const QString& sceneName);
+
+private:
+    int id;
+    QString nom;
 };
 
 #endif // SCENE_H

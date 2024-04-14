@@ -2,11 +2,37 @@
 
 Scene::Scene()
 {
+    id = 0;
+    nom = "";
 }
 
-Scene::Scene(int id, const QString& nom) : id(id), nom(nom)
+Scene::Scene(int id, const QString& nom)
 {
+    this->id = id;
+    this->nom = nom;
 }
+
+int Scene::getId() const
+{
+    return id;
+}
+
+void Scene::setId(int id)
+{
+    this->id = id;
+}
+
+QString Scene::getNom() const
+{
+    return nom;
+}
+
+void Scene::setNom(const QString& nom)
+{
+    this->nom = nom;
+}
+
+
 
 void Scene::insertScene(const QString& nomScene)
 {
