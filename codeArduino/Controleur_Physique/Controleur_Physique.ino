@@ -66,6 +66,11 @@ void loop() {
     directionY = "Bas";
   }
 
+  // Envoyer la direction du joystick uniquement si elle a changé
+  if (directionY != "") {
+    sendJoystickDirection(directionY);
+  }
+
   // Détecter les changements d'état du bouton de sélection
   if (buttonState != lastButtonState) {
     if (buttonState == LOW) { // Bouton de sélection enfoncé
@@ -104,7 +109,7 @@ void loop() {
     displayMenu();
   }
 
-  delay(100);
+  delay(10);
 }
 
 // Fonction pour déplacer la sélection du menu
@@ -154,10 +159,13 @@ void displaySelectedOption() {
 }
 
 // Fonction pour envoyer l'option sélectionnée via le port série
-// Fonction pour envoyer l'option sélectionnée via le port série
 void sendSelectedOption() {
   Serial.print(selectedOption + 1); // Envoyer le numéro de l'option
   Serial.print(":"); // Séparateur
   Serial.println(menuOptions[selectedOption]); // Envoyer le nom de l'option
 }
 
+// Fonction pour envoyer la direction du joystick via le port série
+void sendJoystickDirection(String direction) {
+  Serial.println("Joystick direction: " + direction);
+}
