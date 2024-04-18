@@ -1,6 +1,8 @@
 #pragma once
 
 #include <QtWidgets/QMainWindow>
+#include <QTcpSocket>
+#include <QDataStream>
 #include "ui_DMXProject.h"
 #include "Scene.h"
 #include "Equipement.h"
@@ -19,6 +21,10 @@ public:
 	void createChannelLabelsAndLineEdits(int channelCount, int numCanal);
 	void createFormForSelectedEquipements(const QList<QString>& selectedEquipements, const QString& selectedScene);
 
+	void sendData(const QByteArray& data);
+	void sendDMXFrame();
+	void fillSceneComboBox();
+	void testScene();
 
 
 	void clearForm();
@@ -31,6 +37,7 @@ public slots:
 	void on_actionConfigurer_une_sc_ne_2_triggered();
 	void on_actionAjouter_un_equipement_triggered();
 	void on_actionSupprimer_un_equipement_triggered();
+	void on_actionTester_une_scene_triggered();
 
 	void on_pushButtonValider_clicked();
 	void on_buttonEquip_clicked();
@@ -56,6 +63,10 @@ private:
 	Equipement* equipement;
 	Canal* canal;
 	Champ* champ;
+
+	QTcpSocket* tcpSocket;
+	QDataStream in;
+	QDataStream out;
 
 
 };

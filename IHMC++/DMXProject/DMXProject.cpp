@@ -23,7 +23,7 @@ DMXProject::DMXProject(QWidget *parent)
 {
     ui.setupUi(this);
 	QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
-	db.setHostName("192.168.1.59");
+	db.setHostName("192.168.64.213");
 	db.setDatabaseName("testCodeDMX");
 	db.setUserName("root");
 	db.setPassword("root");
@@ -34,6 +34,15 @@ DMXProject::DMXProject(QWidget *parent)
 		return;
 	}
 
+	QTcpSocket* socket = new QTcpSocket(this);
+	socket->connectToHost("192.168.64.170", 12345); // Remplacez 1234 par le numéro de port de votre serveur
+
+	
+
+	in.setDevice(tcpSocket);
+	out.setDevice(tcpSocket);
+	out.setVersion(QDataStream::Qt_5_0);
+
 
 	// Afficher toutes les scènes existantes
 	scene->afficherScenes(ui.listWidget);
@@ -41,10 +50,29 @@ DMXProject::DMXProject(QWidget *parent)
 
 	afficherScenesCheckbox();
 	Gerer_un_equipement();
+	fillSceneComboBox();
+
+	connect(ui.testSceneButton, &QPushButton::clicked, this, &DMXProject::testScene);
+
 }
 
 DMXProject::~DMXProject()
-{}
+{
+}
+
+void DMXProject::sendData(const QByteArray& data)
+{
+	quint16 blockSize = data.size();
+	out << blockSize << data;
+	tcpSocket->flush(); // Appeler flush() sur l'objet QTcpSocket
+
+	QByteArray response;
+	in >> response;
+
+	// Traiter la réponse du serveur
+}
+
+
 
 void DMXProject::on_pushButtonValider_clicked()
 {
@@ -83,6 +111,13 @@ void DMXProject::on_actionSupprimer_un_equipement_triggered()
 	Gerer_un_equipement();
 	ui.stackedWidget->setCurrentIndex(5);
 }
+
+void DMXProject::on_actionTester_une_scene_triggered()
+{
+	fillSceneComboBox();
+	ui.stackedWidget->setCurrentIndex(6);
+}
+
 
 // Modifiez votre slot on_buttonEquip_clicked pour appeler cette fonction
 void DMXProject::on_buttonEquip_clicked() {
@@ -536,4 +571,84 @@ void DMXProject::saveSettings() {
 
 	// Fermer le QWizard
 	qobject_cast<QWizard*>(sender())->close();
+}
+
+void DMXProject::sendDMXFrame()
+{
+	// Récupérer l'ID de la scène sélectionnée dans votre interface utilisateur
+	int sceneId = 5; //ui->sceneComboBox->currentData().toInt()
+
+	// Récupérer les valeurs des canaux correspondants dans votre base de données
+	QSqlQuery query;
+	query.prepare("SELECT numCanal, valeur FROM canaux WHERE idScene = :sceneId");
+	query.bindValue(":sceneId", sceneId);
+	query.exec();
+
+	// Construire la trame DMX
+	QByteArray dmxFrame(512, 0);
+	while (query.next()) {
+		int numCanal = query.value(0).toInt();
+		int valeur = query.value(1).toInt();
+		dmxFrame[numCanal - 1] = valeur;
+	}
+
+	// Envoyer la trame DMX à votre serveur Linux en utilisant une connexion TCP
+	QTcpSocket socket;
+	socket.connectToHost("192.168.64.170", 12345); // Remplacez par l'adresse IP et le port de votre serveur Linux
+	if (socket.waitForConnected()) {
+		socket.write(dmxFrame);
+		socket.waitForBytesWritten();
+		socket.disconnectFromHost();
+	}
+	else {
+		qDebug() << "Erreur : impossible de se connecter au serveur.";
+	}
+}
+
+void DMXProject::fillSceneComboBox()
+{
+	QSqlQuery query;
+	query.prepare("SELECT nom FROM scene");
+	query.exec();
+
+	while (query.next()) {
+		ui.sceneComboBox->addItem(query.value(0).toString());
+	}
+}
+
+void DMXProject::testScene()
+{
+	// Récupérer le nom de la scène sélectionnée dans le QComboBox
+	QString sceneName = ui.sceneComboBox->currentText();
+
+	// Sélectionner les valeurs des canaux correspondant à la scène sélectionnée dans la base de données
+	QSqlQuery query;
+	query.prepare("SELECT numCanal, valeur FROM canaux WHERE idScene = (SELECT id FROM scene WHERE nom = :sceneName)");
+	query.bindValue(":sceneName", sceneName);
+	query.exec();
+
+	// Construire la trame DMX
+	// Construire la trame DMX
+	QByteArray dmxFrame(512, 0);
+	while (query.next()) {
+		int numCanal = query.value(0).toInt();
+		int valeur = query.value(1).toInt();
+		dmxFrame[numCanal - 1] = valeur;
+	}
+
+	// Afficher les données de la trame DMX dans la console de débogage
+	qDebug() << "Trame DMX :" << dmxFrame.toHex(' ');
+
+	// Envoyer la trame DMX au serveur Linux en utilisant une connexion TCP
+	QTcpSocket socket;
+	socket.connectToHost("192.168.64.170", 12345); // Remplacez par l'adresse IP et le port de votre serveur Linux
+	if (socket.waitForConnected()) {
+		socket.write(dmxFrame);
+		socket.waitForBytesWritten();
+		socket.disconnectFromHost();
+	}
+	else {
+		qDebug() << "Erreur : impossible de se connecter au serveur.";
+	}
+
 }
