@@ -32,7 +32,7 @@
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="QtSettings">
     <QtInstall>5.14.2_msvc2017_64</QtInstall>
-    <QtModules>core;gui;widgets;sql;network</QtModules>
+    <QtModules>core;gui;widgets;sql;network;serialport</QtModules>
     <QtBuildConfig>debug</QtBuildConfig>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
@@ -85,6 +85,7 @@
   <ItemGroup>
     <ClCompile Include="Canal.cpp" />
     <ClCompile Include="Champ.cpp" />
+    <ClCompile Include="ConsoleController.cpp" />
     <ClCompile Include="Equipement.cpp" />
     <ClCompile Include="Scene.cpp" />
     <QtRcc Include="DMXProject.qrc" />
@@ -96,6 +97,7 @@
   <ItemGroup>
     <QtMoc Include="Canal.h" />
     <ClInclude Include="Champ.h" />
+    <QtMoc Include="ConsoleController.h" />
     <ClInclude Include="Equipement.h" />
     <ClInclude Include="Scene.h" />
   </ItemGroup>

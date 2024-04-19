@@ -37,7 +37,15 @@ DMXProject::DMXProject(QWidget *parent)
 	QTcpSocket* socket = new QTcpSocket(this);
 	socket->connectToHost("192.168.64.170", 12345); // Remplacez 1234 par le numéro de port de votre serveur
 
-	
+	consoleController = new ConsoleController(this);
+	consoleController->connectToArduino("8");
+
+
+
+	// Connecter les signaux de ArduinoController aux slots de DMXProject
+	connect(consoleController, &ConsoleController::sceneAddRequested, this, &DMXProject::on_actionCreer_une_sc_ne_triggered);
+	connect(consoleController, &ConsoleController::sceneEditRequested, this, &DMXProject::on_actionConfigurer_une_sc_ne_2_triggered);
+	connect(consoleController, &ConsoleController::sceneDeleteRequested, this, &DMXProject::on_actionSupprimer_un_equipement_triggered);
 
 	in.setDevice(tcpSocket);
 	out.setDevice(tcpSocket);

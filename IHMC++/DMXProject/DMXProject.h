@@ -8,6 +8,7 @@
 #include "Equipement.h"
 #include "Canal.h"
 #include "Champ.h"
+#include "ConsoleController.h"
 
 class DMXProject : public QMainWindow
 {
@@ -67,6 +68,7 @@ private:
 	QTcpSocket* tcpSocket;
 	QDataStream in;
 	QDataStream out;
+	ConsoleController *consoleController;
 
 
 };

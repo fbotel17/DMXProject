@@ -52,6 +52,9 @@
     <ClCompile Include="Champ.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ConsoleController.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Scene.h">
@@ -66,6 +69,9 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Canal.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="ConsoleController.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
