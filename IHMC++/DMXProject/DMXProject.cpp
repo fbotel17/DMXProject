@@ -40,12 +40,14 @@ DMXProject::DMXProject(QWidget *parent)
 	consoleController = new ConsoleController(this);
 	consoleController->connectToArduino("COM8");
 
-
+	consoleController->sendData("coucou");
 
 	// Connecter les signaux de ArduinoController aux slots de DMXProject
 	connect(consoleController, &ConsoleController::sceneAddRequested, this, &DMXProject::on_actionCreer_une_sc_ne_triggered);
 	connect(consoleController, &ConsoleController::sceneEditRequested, this, &DMXProject::on_actionConfigurer_une_sc_ne_2_triggered);
 	connect(consoleController, &ConsoleController::sceneDeleteRequested, this, &DMXProject::on_actionSupprimer_un_equipement_triggered);
+	connect(consoleController, &ConsoleController::sendSceneNamesRequested, this, &DMXProject::sendSceneNamesToArduino); // Nouvelle connexion
+
 
 	in.setDevice(tcpSocket);
 	out.setDevice(tcpSocket);
@@ -80,7 +82,13 @@ void DMXProject::sendData(const QByteArray& data)
 	// Traiter la réponse du serveur
 }
 
-
+void DMXProject::sendSceneNamesToArduino(const QStringList& scenes)
+{
+	QByteArray data;
+	QDataStream stream(&data, QIODevice::WriteOnly);
+	stream << scenes;
+	consoleController->sendData(data);
+}
 
 void DMXProject::on_pushButtonValider_clicked()
 {

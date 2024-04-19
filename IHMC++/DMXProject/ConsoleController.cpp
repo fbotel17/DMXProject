@@ -66,3 +66,16 @@ void ConsoleController::sendSceneNames(const QStringList& scenes) {
         }
     }
 }
+
+void ConsoleController::sendData(const QByteArray& data)
+{
+    if (!isConnected()) {
+        qDebug() << "Not connected to Arduino";
+        return;
+    }
+
+    m_serialPort.write(data);
+    if (!m_serialPort.waitForBytesWritten(1000)) {
+        qDebug() << "Failed to send data";
+    }
+}

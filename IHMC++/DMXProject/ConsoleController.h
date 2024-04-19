@@ -23,6 +23,8 @@ public:
     void disconnectFromArduino();
     bool isConnected() const;
     void sendSceneNames(const QStringList& scenes);
+    void sendData(const QByteArray& data); // Déclaration de la méthode sendData
+
 
 public slots:
     void processSerialData();
@@ -31,6 +33,7 @@ signals:
     void sceneAddRequested();
     void sceneEditRequested();
     void sceneDeleteRequested();
+    void sendSceneNamesRequested(const QStringList& scenes);
 
 private:
     QSerialPort m_serialPort;
