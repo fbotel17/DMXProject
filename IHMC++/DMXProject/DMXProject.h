@@ -26,7 +26,7 @@ public:
 	void sendDMXFrame();
 	void fillSceneComboBox();
 	void testScene();
-
+	void afficherEmplacementsLibresDansTrame();
 	void sendSceneNamesToArduino(const QStringList& scenes);
 
 	void clearForm();

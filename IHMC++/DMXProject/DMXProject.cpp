@@ -660,3 +660,34 @@ void DMXProject::testScene()
 	}
 
 }
+
+void afficherEmplacementsLibresDansTrame() {
+	// Connexion à la base de données et récupération des adresses et du nombre de canaux de chaque équipement
+	QSqlQuery query("SELECT adresse, nbCanal FROM equipement ORDER BY adresse ASC;");
+
+	// Structure de données pour stocker les emplacements des équipements dans la trame
+	std::map<int, int> emplacements;
+
+	// Assignation des emplacements pour chaque équipement
+	while (query.next()) {
+		int adresse = query.value(0).toInt();
+		int nbCanal = query.value(1).toInt();
+		int emplacement = adresse + nbCanal; // Calcul de l'emplacement dans la trame
+		emplacements[emplacement] = nbCanal; // Stockage de l'emplacement dans la map
+	}
+
+	// Calcul des emplacements libres dans la trame
+	int dernierEmplacementUtilise = 0;
+	int nombreEmplacementsLibres = 0;
+	for (const auto& pair : emplacements) {
+		if (pair.first > dernierEmplacementUtilise) {
+			nombreEmplacementsLibres += pair.first - dernierEmplacementUtilise;
+		}
+		dernierEmplacementUtilise = pair.first + pair.second;
+	}
+	nombreEmplacementsLibres += 255 - dernierEmplacementUtilise;
+
+	// Affichage des emplacements libres dans une boîte de dialogue
+	QMessageBox::information(nullptr, "Emplacements libres dans la trame",
+		QString("Nombre d'emplacements libres dans la trame : %1").arg(nombreEmplacementsLibres));
+}
