@@ -38,7 +38,7 @@ DMXProject::DMXProject(QWidget *parent)
 	socket->connectToHost("192.168.64.170", 12345); // Remplacez 1234 par le numéro de port de votre serveur
 
 	consoleController = new ConsoleController(this);
-	consoleController->connectToArduino("8");
+	consoleController->connectToArduino("COM8");
 
 
 

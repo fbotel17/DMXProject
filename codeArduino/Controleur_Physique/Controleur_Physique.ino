@@ -8,16 +8,19 @@
 #define OLED_RESET 4
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
+#define MAX_SCENES 10 // Définir le nombre maximum de scènes que vous pouvez avoir
+
+String sceneNames[MAX_SCENES]; // Utilisation d'un tableau statique pour stocker les noms des scènes
+int totalScenes = 0; // Variable pour suivre le nombre total de scènes
+
+int selectedScene = 0;
+
 int joystickX = A2;
 int joystickY = A0;
 int joystickButton = 7; // Bouton de retour
 int backButton = A3;   // Bouton de sélection
 
 int threshold = 100; // Seuil pour la direction du joystick
-
-// Définir les options du menu
-String menuOptions[] = {"Banane", "Kiwi", "Orange", "Pomme"};
-int selectedOption = 0;
 
 bool showMenu = true; // Variable pour suivre si le menu ou l'option sélectionnée doit être affichée
 bool optionSelected = false; // Variable pour suivre si une option a été sélectionnée
@@ -66,9 +69,17 @@ void loop() {
     directionY = "Bas";
   }
 
-  // Envoyer la direction du joystick uniquement si elle a changé
+  // Si le joystick est déplacé verticalement, changer la sélection de la scène
   if (directionY != "") {
-    sendJoystickDirection(directionY);
+    if (showMenu) {
+      if (directionY == "Haut") {
+        moveSelection(-1); // Déplacer la sélection vers le haut
+      } else if (directionY == "Bas") {
+        moveSelection(1); // Déplacer la sélection vers le bas
+      }
+      displaySelectedScene();
+      delay(250); // Délai pour éviter les changements rapides
+    }
   }
 
   // Détecter les changements d'état du bouton de sélection
@@ -77,8 +88,8 @@ void loop() {
       if (showMenu) {
         optionSelected = true;
         showMenu = false;
-        displaySelectedOption();
-        sendSelectedOption(); // Envoyer l'option sélectionnée via le port série
+        displaySelectedScene();
+        sendSelectedScene(); // Envoyer la scène sélectionnée via le port série
       }
     }
     delay(250); // Délai pour éviter les doubles clics
@@ -94,78 +105,34 @@ void loop() {
   // Mettre à jour l'état précédent du bouton de sélection
   lastButtonState = buttonState;
 
-  // Si le menu est affiché et le joystick est déplacé horizontalement
-  if (showMenu && directionX != "") {
-    if (directionX == "Gauche") {
-      moveSelection(-1); // Déplacer la sélection vers la gauche
-    } else if (directionX == "Droite") {
-      moveSelection(1); // Déplacer la sélection vers la droite
-    }
-    delay(250); // Délai pour éviter les défilements rapides
-  }
-
-  // Afficher le menu ou l'option sélectionnée
-  if (showMenu) {
-    displayMenu();
-  }
-
   delay(10);
 }
 
-// Fonction pour déplacer la sélection du menu
+// Fonction pour déplacer la sélection de la scène
 void moveSelection(int direction) {
-  selectedOption += direction;
-  if (selectedOption < 0) {
-    selectedOption = 3; // Si on est au début du menu, boucler vers le bas
+  selectedScene += direction;
+  if (selectedScene < 0) {
+    selectedScene = totalScenes - 1; // Définir la sélection à la dernière scène si nous sommes au début
   }
-  if (selectedOption > 3) {
-    selectedOption = 0; // Si on est à la fin du menu, boucler vers le haut
+  if (selectedScene >= totalScenes) {
+    selectedScene = 0; // Définir la sélection à la première scène si nous sommes à la fin
   }
 }
 
-// Fonction pour afficher le menu
-void displayMenu() {
+// Fonction pour afficher la scène sélectionnée
+void displaySelectedScene() {
   display.clearDisplay();
   display.setTextSize(1);
-  display.setCursor(0, 8); // Déplacer le curseur vers le haut
-  display.println("Menu:");
-  int startY = 18; // Position verticale de départ pour les options
-  int lineHeight = 9; // Hauteur de ligne
-  for (int i = 0; i < 4; i++) {
-    int yPos = startY + i * lineHeight; // Calculer la position verticale pour chaque option
-    if (i == selectedOption) {
-      display.setCursor(0, yPos); // Définir la position du curseur
-      display.println("> Option " + String(i+1));
-    } else {
-      display.setCursor(0, yPos);
-      display.println("  Option " + String(i+1));
-    }
-  }
-  // Afficher la direction du joystick en bas du menu
-  display.setCursor(0, 55);
-  display.display();
-}
-
-// Fonction pour afficher l'option sélectionnée
-void displaySelectedOption() {
-  display.clearDisplay();
-  display.setTextSize(1); // Réduire la taille du texte
   display.setTextColor(WHITE);
-  int yPos = (SCREEN_HEIGHT - 8) / 2; // Centrer verticalement le texte
-  int xPos = (SCREEN_WIDTH - (menuOptions[selectedOption].length() * 6)) / 2; // Centrer horizontalement le texte
-  display.setCursor(xPos, yPos);
-  display.println(menuOptions[selectedOption]);
+  display.setCursor(0, 0);
+  display.println("Selected Scene:");
+  display.setTextSize(2);
+  display.setCursor(0, 20);
+  display.println(sceneNames[selectedScene]);
   display.display();
 }
 
-// Fonction pour envoyer l'option sélectionnée via le port série
-void sendSelectedOption() {
-  Serial.print(selectedOption + 1); // Envoyer le numéro de l'option
-  Serial.print(":"); // Séparateur
-  Serial.println(menuOptions[selectedOption]); // Envoyer le nom de l'option
-}
-
-// Fonction pour envoyer la direction du joystick via le port série
-void sendJoystickDirection(String direction) {
-  Serial.println("Joystick direction: " + direction);
+// Fonction pour envoyer la scène sélectionnée via le port série
+void sendSelectedScene() {
+  Serial.println("Scene:" + sceneNames[selectedScene]);
 }

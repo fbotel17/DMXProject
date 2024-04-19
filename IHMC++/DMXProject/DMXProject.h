@@ -27,6 +27,7 @@ public:
 	void fillSceneComboBox();
 	void testScene();
 
+	void sendSceneNamesToArduino(const QStringList& scenes);
 
 	void clearForm();
 	void Gerer_un_equipement();

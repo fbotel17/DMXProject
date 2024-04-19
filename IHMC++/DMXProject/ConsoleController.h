@@ -22,6 +22,7 @@ public:
     bool connectToArduino(const QString& portName);
     void disconnectFromArduino();
     bool isConnected() const;
+    void sendSceneNames(const QStringList& scenes);
 
 public slots:
     void processSerialData();

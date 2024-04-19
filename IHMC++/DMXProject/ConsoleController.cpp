@@ -52,3 +52,17 @@ void ConsoleController::processSerialData()
     // Depending on the received data, emit signals to trigger actions in your application
 }
 
+void ConsoleController::sendSceneNames(const QStringList& scenes) {
+    if (!isConnected()) {
+        qDebug() << "Not connected to Arduino";
+        return;
+    }
+
+    foreach(const QString & scene, scenes) {
+        QByteArray data = "Scene:" + scene.toUtf8() + "\n";
+        m_serialPort.write(data);
+        if (!m_serialPort.waitForBytesWritten(1000)) {
+            qDebug() << "Failed to send scene:" << scene;
+        }
+    }
+}
