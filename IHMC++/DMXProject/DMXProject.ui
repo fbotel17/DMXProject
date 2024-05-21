@@ -400,7 +400,7 @@
      <x>0</x>
      <y>0</y>
      <width>1367</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuChoisir">
@@ -444,7 +444,7 @@
   </action>
   <action name="actionSupprimer_un_equipement">
    <property name="text">
-    <string>Supprimer un equipement</string>
+    <string>Gerer un equipement</string>
    </property>
   </action>
   <action name="actionTester_une_scene">

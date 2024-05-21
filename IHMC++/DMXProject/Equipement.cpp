@@ -70,7 +70,18 @@ void Equipement::supprimerEquipement(int idEquipement, DMXProject* dmx)
     // Début de la transaction SQL
     QSqlDatabase::database().transaction();
 
-    // Supprimer d'abord les enregistrements dans la table 'champ' liés à l'équipement à supprimer
+    // Supprimer les enregistrements dans la table 'canaux' qui référencent la table 'champ'
+    QSqlQuery queryDeleteCanaux;
+    queryDeleteCanaux.prepare("DELETE FROM canaux WHERE numCanal IN (SELECT idNumCanal FROM champ WHERE idEquip = :id)");
+    queryDeleteCanaux.bindValue(":id", idEquipement);
+    if (!queryDeleteCanaux.exec()) {
+        qDebug() << "Erreur lors de la suppression des enregistrements dans la table canaux :" << queryDeleteCanaux.lastError().text();
+        // En cas d'erreur, annuler la transaction et sortir de la fonction
+        QSqlDatabase::database().rollback();
+        return;
+    }
+
+    // Supprimer les enregistrements dans la table 'champ' liés à l'équipement à supprimer
     QSqlQuery queryDeleteChamp;
     queryDeleteChamp.prepare("DELETE FROM champ WHERE idEquip = :id");
     queryDeleteChamp.bindValue(":id", idEquipement);
@@ -81,7 +92,6 @@ void Equipement::supprimerEquipement(int idEquipement, DMXProject* dmx)
         return;
     }
 
-    // Ensuite, supprimer l'équipement de la table 'equipement'
     QSqlQuery queryDeleteEquipement;
     queryDeleteEquipement.prepare("DELETE FROM equipement WHERE id = :id");
     queryDeleteEquipement.bindValue(":id", idEquipement);
@@ -95,8 +105,8 @@ void Equipement::supprimerEquipement(int idEquipement, DMXProject* dmx)
     // Valider la transaction SQL
     QSqlDatabase::database().commit();
 
-    qDebug() << "Équipement supprimé avec succès de la base de données.";
-    
+    qDebug() << "Equipement supprime avec succes de la base de donnees.";
+
     dmx->Gerer_un_equipement();
 }
 
