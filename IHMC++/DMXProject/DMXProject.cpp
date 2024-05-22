@@ -8,7 +8,7 @@
 #include <QSpinBox>
 #include <QPushButton>
 #include <QVBoxLayout>
-#include <QListWidgetItem> // Ajoutez cette ligne
+#include <QListWidgetItem>
 #include <QScrollArea>
 #include <QStringList>
 #include <QTableWidgetItem>
@@ -16,6 +16,10 @@
 #include <QHeaderView>
 #include <QMessageBox>
 #include <QWizard>
+#include <QDialog>
+#include <QFormLayout>
+#include <QDialogButtonBox>
+#include <QSqlQuery>
 
 
 DMXProject::DMXProject(QWidget *parent)
@@ -150,7 +154,6 @@ void DMXProject::on_buttonEquip_clicked() {
 void DMXProject::afficherScenesCheckbox()
 {
 	
-
 	// Exécuter une requête pour récupérer tous les équipements existants
 	QSqlQuery query("SELECT nom FROM scene");
 
@@ -399,99 +402,208 @@ void DMXProject::clearForm()
 }
 
 
-// Mettre à jour la méthode Supprimer_un_equipement pour utiliser la variable membre m_idEquipementASupprimer
 void DMXProject::Gerer_un_equipement()
 {
-	// Vérifier si un équipement doit être supprimé
-	
-		// Effacer tous les widgets précédents du layout
-		QLayoutItem* child;
 
-		while ((child = ui.verticalLayout_3->takeAt(0)) != nullptr)
-		{
-			delete child->widget();
-			delete child;
+	QLayoutItem* child;
+
+	while ((child = ui.verticalLayout_3->takeAt(0)) != nullptr)
+	{
+		delete child->widget();
+		delete child;
+	}
+
+	// Vider la liste des pointeurs de QLineEdit
+	m_lineEdits.clear();
+
+	// Créer un bouton "Nouvel équipement"
+	QPushButton* newEquipmentButton = new QPushButton("Nouvel equipement");
+	QObject::connect(newEquipmentButton, &QPushButton::clicked, this, &DMXProject::handleNewEquipmentButtonClicked);
+	ui.verticalLayout_3->addWidget(newEquipmentButton);
+
+	// Créer un nouveau QTableView
+	QTableView* tableView = new QTableView;
+
+	tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	tableView->setSelectionMode(QAbstractItemView::NoSelection);
+	tableView->setSelectionBehavior(QAbstractItemView::SelectItems);
+
+	// Créer un modèle de tableau vide avec cinq colonnes
+	QStandardItemModel* model = new QStandardItemModel(0, 5);
+	tableView->setModel(model);
+
+	// Définir les en-têtes de colonne
+	model->setHorizontalHeaderLabels(QStringList() << "Nom de l'equipement" << "Adresse" << "Nombre de Canal" << "Modifier" << "Supprimer");
+
+	// Exécuter une requête pour récupérer tous les équipements existants
+	QSqlQuery query("SELECT id, nom, adresse, nbCanal FROM equipement");
+
+	int row = 0; // Variable pour garder une trace du numéro de ligne
+
+	// Parcourir les résultats de la requête et ajouter chaque équipement en tant que ligne dans le modèle de tableau
+	while (query.next()) {
+		int currentIdEquipement = query.value(0).toInt(); // Récupérer l'ID de l'équipement actuel
+
+		// Vérifier si l'ID de l'équipement actuel correspond à l'ID de l'équipement à supprimer
+		if (currentIdEquipement == m_idEquipementASupprimer) {
+			continue; // Ignorer cet équipement car il doit être supprimé
 		}
 
-		// Vider la liste des pointeurs de QLineEdit
-		m_lineEdits.clear();
+		QString nomEquipement = query.value(1).toString();
+		QString adresseEquipement = query.value(2).toString();
+		int nbCanalEquipement = query.value(3).toInt();
 
-		// Créer un nouveau QTableView
-		QTableView* tableView = new QTableView;
+		QList<QStandardItem*> rowData;
+		rowData << new QStandardItem(nomEquipement);
+		rowData << new QStandardItem(adresseEquipement);
+		rowData << new QStandardItem(QString::number(nbCanalEquipement));
 
-		tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-		tableView->setSelectionMode(QAbstractItemView::NoSelection);
-		tableView->setSelectionBehavior(QAbstractItemView::SelectItems);
+		// Créer un bouton pour la quatrième colonne "Modifier"
+		QPushButton* modifyButton = new QPushButton("Modifier");
+		QObject::connect(modifyButton, &QPushButton::clicked, this, [this, currentIdEquipement, nomEquipement, adresseEquipement, nbCanalEquipement]() {
+			handleModifyButtonClicked(currentIdEquipement, nomEquipement, adresseEquipement, nbCanalEquipement);
+			}); // Connecter le signal clicked du bouton à une lambda fonction
+		model->setItem(row, 3, new QStandardItem(""));
+		tableView->setIndexWidget(model->index(row, 3), modifyButton);
 
-		// Créer un modèle de tableau vide avec cinq colonnes
-		QStandardItemModel* model = new QStandardItemModel(0, 5);
-		tableView->setModel(model);
+		// Créer un bouton pour la cinquième colonne "Supprimer"
+		QPushButton* deleteButton = new QPushButton("Supprimer");
+		deleteButton->setObjectName(QString::number(currentIdEquipement)); // Utiliser l'ID de l'équipement comme nom d'objet
+		QObject::connect(deleteButton, &QPushButton::clicked, this, &DMXProject::handleDeleteButtonClicked); // Connecter le signal clicked du bouton à une slot
+		model->setItem(row, 4, new QStandardItem(""));
+		tableView->setIndexWidget(model->index(row, 4), deleteButton);
 
-		// Définir les en-têtes de colonne
-		model->setHorizontalHeaderLabels(QStringList() << "Nom de l'equipement" << "Adresse" << "Nombre de Canal" << "Modifier" << "Supprimer");
-
-		// Exécuter une requête pour récupérer tous les équipements existants
-		QSqlQuery query("SELECT id, nom, adresse, nbCanal FROM equipement");
-
-		int row = 0; // Variable pour garder une trace du numéro de ligne
-
-		// Parcourir les résultats de la requête et ajouter chaque équipement en tant que ligne dans le modèle de tableau
-		while (query.next()) {
-			int currentIdEquipement = query.value(0).toInt(); // Récupérer l'ID de l'équipement actuel
-
-			// Vérifier si l'ID de l'équipement actuel correspond à l'ID de l'équipement à supprimer
-			if (currentIdEquipement == m_idEquipementASupprimer) {
-				continue; // Ignorer cet équipement car il doit être supprimé
-			}
-
-			QString nomEquipement = query.value(1).toString();
-			QString adresseEquipement = query.value(2).toString();
-			int nbCanalEquipement = query.value(3).toInt();
-
-			QList<QStandardItem*> rowData;
-			rowData << new QStandardItem(nomEquipement);
-			rowData << new QStandardItem(adresseEquipement);
-			rowData << new QStandardItem(QString::number(nbCanalEquipement));
-
-			// Créer un bouton pour la quatrième colonne "Modifier"
-			QPushButton* modifyButton = new QPushButton("Modifier");
-			QObject::connect(modifyButton, &QPushButton::clicked, this, [this, currentIdEquipement, nomEquipement, adresseEquipement, nbCanalEquipement]() {
-				handleModifyButtonClicked(currentIdEquipement, nomEquipement, adresseEquipement, nbCanalEquipement);
-				}); // Connecter le signal clicked du bouton à une lambda fonction
-			model->setItem(row, 3, new QStandardItem(""));
-			tableView->setIndexWidget(model->index(row, 3), modifyButton);
-
-			// Créer un bouton pour la cinquième colonne "Supprimer"
-			QPushButton* deleteButton = new QPushButton("Supprimer");
-			deleteButton->setObjectName(QString::number(currentIdEquipement)); // Utiliser l'ID de l'équipement comme nom d'objet
-			QObject::connect(deleteButton, &QPushButton::clicked, this, &DMXProject::handleDeleteButtonClicked); // Connecter le signal clicked du bouton à une slot
-			model->setItem(row, 4, new QStandardItem(""));
-			tableView->setIndexWidget(model->index(row, 4), deleteButton);
-
-			// Ajouter les autres données de l'équipement à la même ligne
-			for (int i = 0; i < rowData.size(); ++i) {
-				model->setItem(row, i, rowData[i]);
-			}
-
-			++row; // Incrémenter le numéro de ligne
+		// Ajouter les autres données de l'équipement à la même ligne
+		for (int i = 0; i < rowData.size(); ++i) {
+			model->setItem(row, i, rowData[i]);
 		}
 
-		// Redimensionner les colonnes pour qu'elles s'adaptent au contenu
-		tableView->resizeColumnsToContents();
+		++row; // Incrémenter le numéro de ligne
+	}
 
-		// Définir les politiques de taille pour le tableau et le widget parent
-		tableView->horizontalHeader()->setStretchLastSection(true);
-		tableView->verticalHeader()->setStretchLastSection(true);
-		tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-		tableView->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+	// Redimensionner les colonnes pour qu'elles s'adaptent au contenu
+	tableView->resizeColumnsToContents();
 
-		// Ajouter le QTableView au layout verticalLayout_3 en prenant tout l'espace disponible
-		ui.verticalLayout_3->addWidget(tableView);
+	// Définir les politiques de taille pour le tableau et le widget parent
+	tableView->horizontalHeader()->setStretchLastSection(true);
+	tableView->verticalHeader()->setStretchLastSection(true);
+	tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+	tableView->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
-		// Réinitialiser l'ID de l'équipement à supprimer
-		m_idEquipementASupprimer = -1;
+	// Ajouter le QTableView au layout verticalLayout_3 en prenant tout l'espace disponible
+	ui.verticalLayout_3->addWidget(tableView);
 
+	// Réinitialiser l'ID de l'équipement à supprimer
+	m_idEquipementASupprimer = -1;
 }
+
+void DMXProject::handleNewEquipmentButtonClicked()
+{
+	// Logique pour ajouter un nouvel équipement
+	QDialog dialog(this);
+	dialog.setWindowTitle("Ajouter un nouvel équipement");
+
+	QFormLayout form(&dialog);
+
+	// Ajout des champs d'entrée
+	QLineEdit* nomEdit = new QLineEdit(&dialog);
+	form.addRow("Nom de l'equipement:", nomEdit);
+
+	QLineEdit* adresseEdit = new QLineEdit(&dialog);
+	form.addRow("Adresse:", adresseEdit);
+
+	QLineEdit* canauxEdit = new QLineEdit(&dialog);
+	form.addRow("Nombre de canaux:", canauxEdit);
+
+	// Ajout des boutons
+	QDialogButtonBox buttonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, &dialog);
+	form.addRow(&buttonBox);
+
+	// Connexion des boutons
+	QObject::connect(&buttonBox, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+	QObject::connect(&buttonBox, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+
+	// Afficher la boîte de dialogue
+	if (dialog.exec() == QDialog::Accepted) {
+		QString nom = nomEdit->text();
+		QString adresse = adresseEdit->text();
+		int canaux = canauxEdit->text().toInt();
+
+		// Ajouter l'équipement à la base de données
+		QSqlQuery query;
+		query.prepare("INSERT INTO equipement (nom, adresse, nbCanal) VALUES (?, ?, ?)");
+		query.addBindValue(nom);
+		query.addBindValue(adresse);
+		query.addBindValue(canaux);
+
+		if (query.exec()) {
+			// Réafficher la liste des équipements
+			Gerer_un_equipement();
+
+			// Créer une nouvelle fenêtre pour les étiquettes de canal et les champs de texte associés
+			QDialog channelDialog(this);
+			channelDialog.setWindowTitle("Noms des canaux");
+
+			QVBoxLayout channelLayout(&channelDialog);
+
+			// Récupérer la valeur de l'adresse pour l'incrémentation
+			int adresseInt = adresse.toInt();
+
+			// Affichez les QLabel et les QLineEdit pour chaque canal
+			QVector<QLineEdit*> channelLineEditVector;
+			for (int i = 0; i < canaux; ++i) {
+				QLabel* label = new QLabel("Nom du canal " + QString::number(adresseInt + i) + " :");
+				QLineEdit* lineEdit = new QLineEdit(&channelDialog);
+				channelLayout.addWidget(label);
+				channelLayout.addWidget(lineEdit);
+				channelLineEditVector.append(lineEdit);
+			}
+
+			// Ajouter les boutons OK et Annuler à la fenêtre des canaux
+			QDialogButtonBox channelButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, &channelDialog);
+			channelLayout.addWidget(&channelButtonBox);
+
+			// Connexion des boutons
+			QObject::connect(&channelButtonBox, &QDialogButtonBox::accepted, [&]() {
+				// Insérer les noms des canaux dans la base de données
+				QSqlQuery channelQuery;
+
+				// Préparer la requête pour l'insertion des noms des canaux
+				channelQuery.prepare("INSERT INTO champ (idEquip, idNumCanal, nom) VALUES (:idEquip, :idNumCanal, :nom)");
+
+				// Récupérer l'ID de l'équipement inséré
+				int idEquip = query.lastInsertId().toInt();
+
+				// Parcourir les noms des canaux et les insérer dans la base de données
+				for (int i = 0; i < canaux; ++i) {
+					QString channelName = channelLineEditVector[i]->text();
+
+					channelQuery.bindValue(":idEquip", idEquip);
+					channelQuery.bindValue(":idNumCanal", adresseInt + i ); // Identifiant numérique du canal
+					channelQuery.bindValue(":nom", channelName);
+
+					if (!channelQuery.exec()) {
+						qDebug() << "Erreur lors de l'insertion des données dans la table champ:" << channelQuery.lastError().text();
+						QMessageBox::warning(this, "Erreur", "Échec de l'ajout des noms des canaux à la base de données: " + channelQuery.lastError().text());
+						break;
+					}
+				}
+
+				// Fermer la fenêtre des canaux une fois que l'insertion est terminée
+				channelDialog.accept();
+				});
+
+			QObject::connect(&channelButtonBox, &QDialogButtonBox::rejected, &channelDialog, &QDialog::reject);
+
+			// Afficher la fenêtre des canaux
+			channelDialog.exec();
+		}
+		else {
+			QMessageBox::warning(this, "Erreur", "Échec de l'ajout de l'équipement à la base de données.");
+		}
+	}
+}
+
 
 
 void DMXProject::handleDeleteButtonClicked()

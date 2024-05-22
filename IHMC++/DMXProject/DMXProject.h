@@ -48,9 +48,8 @@ public slots:
 	//void on_ValidateButtonCanal_clicked();
 	void handleDeleteButtonClicked();
 	void handleModifyButtonClicked(int idEquipement, const QString& nomEquipement, const QString& adresseEquipement, int nbCanalEquipement);
-
-	//void updateUi(int);
 	void saveSettings();
+	void handleNewEquipmentButtonClicked();
 
 private:
 	Ui::DMXProjectClass ui;
@@ -59,7 +58,7 @@ private:
 	QString m_selectedScene;
 	QList<QLineEdit*> m_lineEdits;
 	int numCanal;
-	int m_idEquipementASupprimer = -1; // Initialisé à -1 pour indiquer qu'aucun équipement n'est sélectionné initialement
+	int m_idEquipementASupprimer = -1;
 	QList<QString> m_selectedEquipements;
 	Scene* scene;
 	Equipement* equipement;
