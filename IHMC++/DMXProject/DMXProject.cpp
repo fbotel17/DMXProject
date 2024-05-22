@@ -428,7 +428,7 @@ void DMXProject::Gerer_un_equipement()
 		tableView->setModel(model);
 
 		// Définir les en-têtes de colonne
-		model->setHorizontalHeaderLabels(QStringList() << "Nom de l'équipement" << "Adresse" << "Nombre de Canal" << "Modifier" << "Supprimer");
+		model->setHorizontalHeaderLabels(QStringList() << "Nom de l'equipement" << "Adresse" << "Nombre de Canal" << "Modifier" << "Supprimer");
 
 		// Exécuter une requête pour récupérer tous les équipements existants
 		QSqlQuery query("SELECT id, nom, adresse, nbCanal FROM equipement");
