@@ -22,10 +22,10 @@
 #include <QSqlQuery>
 
 
-DMXProject::DMXProject(QWidget *parent)
-    : QMainWindow(parent)
+DMXProject::DMXProject(QWidget* parent)
+	: QMainWindow(parent)
 {
-    ui.setupUi(this);
+	ui.setupUi(this);
 	QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
 	db.setHostName("192.168.64.213");
 	db.setDatabaseName("testCodeDMX");
@@ -39,27 +39,30 @@ DMXProject::DMXProject(QWidget *parent)
 	}
 
 	QTcpSocket* socket = new QTcpSocket(this);
-	socket->connectToHost("192.168.64.170", 12345); // Remplacez 1234 par le numéro de port de votre serveur
+	socket->connectToHost("192.168.64.170", 12345); // Remplacez 12345 par le numéro de port de votre serveur
 
 	consoleController = new ConsoleController(this);
-	consoleController->connectToArduino("COM8");
+	if (!consoleController->connectToArduino("COM8")) {
+		qDebug() << "Échec de la connexion à l'Arduino.";
+		// Gérer les erreurs de connexion
 
-	consoleController->sendData("coucou");
+	}
 
-	// Connecter les signaux de ArduinoController aux slots de DMXProject
+	// Connecter les signaux de ConsoleController aux slots de DMXProject
 	connect(consoleController, &ConsoleController::sceneAddRequested, this, &DMXProject::on_actionCreer_une_sc_ne_triggered);
 	connect(consoleController, &ConsoleController::sceneEditRequested, this, &DMXProject::on_actionConfigurer_une_sc_ne_2_triggered);
 	connect(consoleController, &ConsoleController::sceneDeleteRequested, this, &DMXProject::on_actionSupprimer_un_equipement_triggered);
-	connect(consoleController, &ConsoleController::sendSceneNamesRequested, this, &DMXProject::sendSceneNamesToArduino); // Nouvelle connexion
-
-
-	in.setDevice(tcpSocket);
-	out.setDevice(tcpSocket);
-	out.setVersion(QDataStream::Qt_5_0);
-
+	connect(consoleController, &ConsoleController::sendSceneNamesRequested, this, &DMXProject::sendSceneNamesToArduino);
 
 	// Afficher toutes les scènes existantes
-	scene->afficherScenes(ui.listWidget);
+	Scene scene;
+	QList<Scene> scenes = scene.getAllScenes();
+	foreach(const Scene & s, scenes) {
+		ui.listWidget->addItem(s.getNom());
+	}
+
+	// Si equipement est un objet, il doit être instancié avant d'être utilisé.
+	// Sinon, définissez la méthode afficherEquipements() comme statique.
 	equipement->afficherEquipements(ui.verticalLayoutEquipements);
 
 	afficherScenesCheckbox();
@@ -68,6 +71,12 @@ DMXProject::DMXProject(QWidget *parent)
 
 	connect(ui.testSceneButton, &QPushButton::clicked, this, &DMXProject::testScene);
 
+	// Envoyer les noms des scènes à l'Arduino
+	QStringList sceneNames;
+	foreach(const Scene & s, scenes) {
+		sceneNames.append(s.getNom());
+	}
+	consoleController->sendSceneNames(sceneNames);
 }
 
 DMXProject::~DMXProject()
@@ -88,10 +97,17 @@ void DMXProject::sendData(const QByteArray& data)
 
 void DMXProject::sendSceneNamesToArduino(const QStringList& scenes)
 {
-	QByteArray data;
-	QDataStream stream(&data, QIODevice::WriteOnly);
-	stream << scenes;
-	consoleController->sendData(data);
+	if (!consoleController->isConnected()) {
+		qDebug() << "Not connected to Arduino";
+		return;
+	}
+
+	foreach(const QString & scene, scenes) {
+		QByteArray data = scene.toUtf8() + "\n";
+		qDebug() << "Sending scene:" << scene;
+		consoleController->sendData(data);
+		// Ajout d'un délai pour s'assurer que chaque ligne est bien envoyée
+	}
 }
 
 void DMXProject::on_pushButtonValider_clicked()

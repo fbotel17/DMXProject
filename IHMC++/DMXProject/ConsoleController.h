@@ -26,6 +26,7 @@ public:
     void sendData(const QByteArray& data); // Déclaration de la méthode sendData
 
 
+
 public slots:
     void processSerialData();
 

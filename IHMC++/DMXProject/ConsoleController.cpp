@@ -45,12 +45,13 @@ bool ConsoleController::isConnected() const
     return m_serialPort.isOpen();
 }
 
-void ConsoleController::processSerialData()
-{
+void ConsoleController::processSerialData() {
     QByteArray data = m_serialPort.readAll();
-    // Analyze serial data and emit corresponding signals
-    // Depending on the received data, emit signals to trigger actions in your application
+    qDebug() << "Received data from Arduino:" << data;
+    // Analyser les données sérielles et émettre les signaux correspondants
+    // Selon les données reçues, émettre des signaux pour déclencher des actions dans votre application
 }
+
 
 void ConsoleController::sendSceneNames(const QStringList& scenes) {
     if (!isConnected()) {
@@ -59,13 +60,16 @@ void ConsoleController::sendSceneNames(const QStringList& scenes) {
     }
 
     foreach(const QString & scene, scenes) {
-        QByteArray data = "Scene:" + scene.toUtf8() + "\n";
+        QByteArray data = scene.toUtf8() + "\n";
+        qDebug() << "Sending scene:" << scene;
         m_serialPort.write(data);
         if (!m_serialPort.waitForBytesWritten(1000)) {
             qDebug() << "Failed to send scene:" << scene;
         }
+        // Ajout d'un délai pour s'assurer que chaque ligne est bien envoyée
     }
 }
+
 
 void ConsoleController::sendData(const QByteArray& data)
 {
