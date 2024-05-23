@@ -420,9 +420,9 @@ void DMXProject::clearForm()
 
 void DMXProject::Gerer_un_equipement()
 {
-
 	QLayoutItem* child;
 
+	// Supprimer tous les widgets existants dans le layout
 	while ((child = ui.verticalLayout_3->takeAt(0)) != nullptr)
 	{
 		delete child->widget();
@@ -432,8 +432,23 @@ void DMXProject::Gerer_un_equipement()
 	// Vider la liste des pointeurs de QLineEdit
 	m_lineEdits.clear();
 
-	// Créer un bouton "Nouvel équipement"
+	// Créer un QLabel avec du texte en grand au milieu
+	QLabel* gererEquipementLabel = new QLabel("Gerer un equipement");
+	gererEquipementLabel->setAlignment(Qt::AlignCenter);
+	QFont font = gererEquipementLabel->font();
+	font.setPointSize(24); // Définir la taille de la police
+	gererEquipementLabel->setFont(font);
+
+	// Utiliser un QHBoxLayout pour centrer le QLabel horizontalement
+	QHBoxLayout* labelLayout = new QHBoxLayout;
+	labelLayout->addWidget(gererEquipementLabel);
+	ui.verticalLayout_3->addLayout(labelLayout);
+
+	// Créer un bouton "Nouvel équipement" plus petit mais plus épais
 	QPushButton* newEquipmentButton = new QPushButton("Nouvel equipement");
+	newEquipmentButton->setFixedSize(150, 50); // Définir une taille fixe pour le bouton
+	newEquipmentButton->setStyleSheet("QPushButton { padding: 10px; font-weight: bold; }"); // Définir du padding et un texte en gras
+
 	QObject::connect(newEquipmentButton, &QPushButton::clicked, this, &DMXProject::handleNewEquipmentButtonClicked);
 	ui.verticalLayout_3->addWidget(newEquipmentButton);
 
@@ -513,11 +528,12 @@ void DMXProject::Gerer_un_equipement()
 	m_idEquipementASupprimer = -1;
 }
 
+
 void DMXProject::handleNewEquipmentButtonClicked()
 {
 	// Logique pour ajouter un nouvel équipement
 	QDialog dialog(this);
-	dialog.setWindowTitle("Ajouter un nouvel équipement");
+	dialog.setWindowTitle("Ajouter un nouvel equipement");
 
 	QFormLayout form(&dialog);
 

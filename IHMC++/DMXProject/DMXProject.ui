@@ -407,7 +407,6 @@
     <property name="title">
      <string>Choisir</string>
     </property>
-    <addaction name="actionAjouter_un_equipement"/>
     <addaction name="actionSupprimer_un_equipement"/>
     <addaction name="actionCreer_une_sc_ne"/>
     <addaction name="actionConfigurer_une_sc_ne_2"/>
