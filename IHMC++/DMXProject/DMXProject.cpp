@@ -80,7 +80,8 @@ DMXProject::DMXProject(QWidget* parent) : QMainWindow(parent) {
 	int nouvelleHauteur = 300; // Par exemple, vous pouvez définir la hauteur souhaitée
 
 	// Insérer une image dans le label_10
-	QPixmap image("C:/Users/tomle/source/repos/ModuleTestDMX/ModuleTestDMX/image/page.png"); // C:/Users/tomle/source/repos/ModuleTestDMX/ModuleTestDMX/image/page.png
+	QString path = QDir::currentPath() + "/image/page.png";
+	QPixmap image(path);
 
 	// Redimensionner l'image avec les nouvelles dimensions
 	image = image.scaled(nouvelleLargeur, nouvelleHauteur, Qt::KeepAspectRatio); // Redimensionner l'image avec les dimensions spécifiées
