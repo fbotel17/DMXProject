@@ -20,12 +20,13 @@
 #include <QFormLayout>
 #include <QDialogButtonBox>
 #include <QSqlQuery>
+#include <QPixmap>
 
 
-DMXProject::DMXProject(QWidget* parent)
-	: QMainWindow(parent)
-{
+DMXProject::DMXProject(QWidget* parent) : QMainWindow(parent) {
 	ui.setupUi(this);
+
+	// Connexion à la base de données MySQL
 	QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
 	db.setHostName("192.168.64.213");
 	db.setDatabaseName("testCodeDMX");
@@ -34,18 +35,17 @@ DMXProject::DMXProject(QWidget* parent)
 
 	if (!db.open()) {
 		qDebug() << "Échec de la connexion à la base de données.";
-		// Gérer les erreurs de connexion
 		return;
 	}
 
+	// Connexion au serveur TCP
 	QTcpSocket* socket = new QTcpSocket(this);
 	socket->connectToHost("192.168.64.170", 12345); // Remplacez 12345 par le numéro de port de votre serveur
 
+	// Connexion à l'Arduino
 	consoleController = new ConsoleController(this);
 	if (!consoleController->connectToArduino("COM8")) {
 		qDebug() << "Échec de la connexion à l'Arduino.";
-		// Gérer les erreurs de connexion
-
 	}
 
 	// Connecter les signaux de ConsoleController aux slots de DMXProject
@@ -61,13 +61,11 @@ DMXProject::DMXProject(QWidget* parent)
 		ui.listWidget->addItem(s.getNom());
 	}
 
-	// Si equipement est un objet, il doit être instancié avant d'être utilisé.
-	// Sinon, définissez la méthode afficherEquipements() comme statique.
+	// Afficher les équipements
 	equipement->afficherEquipements(ui.verticalLayoutEquipements);
 
 	afficherScenesCheckbox();
 	Gerer_un_equipement();
-
 
 	connect(ui.testSceneButton, &QPushButton::clicked, this, &DMXProject::testScene);
 
@@ -77,6 +75,24 @@ DMXProject::DMXProject(QWidget* parent)
 		sceneNames.append(s.getNom());
 	}
 	consoleController->sendSceneNames(sceneNames);
+
+	int nouvelleLargeur = 400; // Par exemple, vous pouvez définir la largeur souhaitée
+	int nouvelleHauteur = 300; // Par exemple, vous pouvez définir la hauteur souhaitée
+
+	// Insérer une image dans le label_10
+	QPixmap image("C:/Users/tomle/source/repos/ModuleTestDMX/ModuleTestDMX/image/page.png"); // C:/Users/tomle/source/repos/ModuleTestDMX/ModuleTestDMX/image/page.png
+
+	// Redimensionner l'image avec les nouvelles dimensions
+	image = image.scaled(nouvelleLargeur, nouvelleHauteur, Qt::KeepAspectRatio); // Redimensionner l'image avec les dimensions spécifiées
+
+	// Redimensionner le QLabel pour qu'il puisse afficher l'image entière
+	ui.label_10->resize(image.size());
+
+	// Afficher l'image dans le QLabel
+	ui.label_10->setPixmap(image);
+
+	// Mettre à jour le layout si nécessaire
+	ui.label_10->updateGeometry();
 }
 
 DMXProject::~DMXProject()
