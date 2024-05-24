@@ -67,7 +67,7 @@ DMXProject::DMXProject(QWidget* parent)
 
 	afficherScenesCheckbox();
 	Gerer_un_equipement();
-	fillSceneComboBox();
+
 
 	connect(ui.testSceneButton, &QPushButton::clicked, this, &DMXProject::testScene);
 
@@ -781,37 +781,38 @@ void DMXProject::testScene()
 	// Récupérer le nom de la scène sélectionnée dans le QComboBox
 	QString sceneName = ui.sceneComboBox->currentText();
 
-	// Sélectionner les valeurs des canaux correspondant à la scène sélectionnée dans la base de données
+	// Sélectionner l'ID de la scène correspondant au nom sélectionné dans la base de données
 	QSqlQuery query;
-	query.prepare("SELECT numCanal, valeur FROM canaux WHERE idScene = (SELECT id FROM scene WHERE nom = :sceneName)");
+	query.prepare("SELECT id FROM scene WHERE nom = :sceneName");
 	query.bindValue(":sceneName", sceneName);
 	query.exec();
 
-	// Construire la trame DMX
-	// Construire la trame DMX
-	QByteArray dmxFrame(512, 0);
-	while (query.next()) {
-		int numCanal = query.value(0).toInt();
-		int valeur = query.value(1).toInt();
-		dmxFrame[numCanal - 1] = valeur;
+	int sceneId = -1;
+	if (query.next()) {
+		sceneId = query.value(0).toInt();
 	}
 
-	// Afficher les données de la trame DMX dans la console de débogage
-	qDebug() << "Trame DMX :" << dmxFrame.toHex(' ');
+	if (sceneId != -1) {
+		// Convertir l'ID de la scène en QByteArray
+		QByteArray sceneIdData = QByteArray::number(sceneId);
 
-	// Envoyer la trame DMX au serveur Linux en utilisant une connexion TCP
-	QTcpSocket socket;
-	socket.connectToHost("192.168.64.170", 12345); // Remplacez par l'adresse IP et le port de votre serveur Linux
-	if (socket.waitForConnected()) {
-		socket.write(dmxFrame);
-		socket.waitForBytesWritten();
-		socket.disconnectFromHost();
+		// Envoyer l'ID de la scène au serveur Linux en utilisant une connexion TCP
+		QTcpSocket socket;
+		socket.connectToHost("192.168.64.170", 12345); // Remplacez par l'adresse IP et le port de votre serveur Linux
+		if (socket.waitForConnected()) {
+			socket.write(sceneIdData);
+			socket.waitForBytesWritten();
+			socket.disconnectFromHost();
+		}
+		else {
+			qDebug() << "Erreur : impossible de se connecter au serveur.";
+		}
 	}
 	else {
-		qDebug() << "Erreur : impossible de se connecter au serveur.";
+		qDebug() << "Erreur : scène non trouvée.";
 	}
-
 }
+
 
 void afficherEmplacementsLibresDansTrame() {
 	// Connexion à la base de données et récupération des adresses et du nombre de canaux de chaque équipement
