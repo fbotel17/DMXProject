@@ -359,12 +359,57 @@ void DMXProject::createFormForSelectedEquipements(const QList<QString>& selected
 {
 	clearForm();
 
+	// Récupérer l'ID de la scène sélectionnée
+	QSqlQuery sceneQuery;
+	sceneQuery.prepare("SELECT id FROM scene WHERE nom = :nom");
+	sceneQuery.bindValue(":nom", selectedScene);
+	if (!sceneQuery.exec() || !sceneQuery.next()) {
+		qDebug() << "Erreur lors de l'exécution de la requête sceneQuery:" << sceneQuery.lastError().text();
+		ui.stackedWidget->setCurrentIndex(1); // Rediriger en cas d'erreur
+		return;
+	}
+	int idScene = sceneQuery.value(0).toInt();
+
+	// Vérifier si des canaux existent déjà pour cette scène
+	QSqlQuery checkCanauxQuery;
+	checkCanauxQuery.prepare("SELECT COUNT(*) FROM canaux WHERE idScene = :idScene");
+	checkCanauxQuery.bindValue(":idScene", idScene);
+	if (!checkCanauxQuery.exec() || !checkCanauxQuery.next()) {
+		qDebug() << "Erreur lors de l'exécution de la requête checkCanauxQuery:" << checkCanauxQuery.lastError().text();
+		ui.stackedWidget->setCurrentIndex(1); // Rediriger en cas d'erreur
+		return;
+	}
+	int countCanaux = checkCanauxQuery.value(0).toInt();
+
+	// Si des canaux existent déjà, demander confirmation à l'utilisateur
+	if (countCanaux > 0) {
+		QMessageBox msgBox;
+		msgBox.setText("La scène sélectionnée possède déjà une configuration. Voulez-vous la supprimer ?");
+		msgBox.setStandardButtons(QMessageBox::Cancel | QMessageBox::Ok);
+		int ret = msgBox.exec();
+		if (ret == QMessageBox::Ok) {
+			// Supprimer les canaux existants
+			QSqlQuery deleteQuery;
+			deleteQuery.prepare("DELETE FROM canaux WHERE idScene = :idScene");
+			deleteQuery.bindValue(":idScene", idScene);
+			if (!deleteQuery.exec()) {
+				qDebug() << "Erreur lors de l'exécution de la requête deleteQuery:" << deleteQuery.lastError().text();
+				ui.stackedWidget->setCurrentIndex(1); // Rediriger en cas d'erreur
+				return;
+			}
+		}
+		else {
+			// Annuler l'opération
+			ui.stackedWidget->setCurrentIndex(1); // Rediriger après annulation
+			return;
+		}
+	}
+
 	// Créer un QWizard pour configurer les canaux de chaque équipement dans la scène
 	QWizard* wizard = new QWizard(this);
 
 	// Créer une page pour chaque équipement sélectionné
-	for (const QString& equipementName : selectedEquipements)
-	{
+	for (const QString& equipementName : selectedEquipements) {
 		QWizardPage* page = new QWizardPage(this);
 		QVBoxLayout* layout = new QVBoxLayout(page);
 		layout->addWidget(new QLabel(QString("Configurer les canaux pour %1 :").arg(equipementName), page));
@@ -374,8 +419,7 @@ void DMXProject::createFormForSelectedEquipements(const QList<QString>& selected
 
 		// Ajouter des widgets pour chaque canal de cet équipement
 		QList<QPair<int, int>> channelData; // Ajouter une liste de paires pour stocker les valeurs des QSpinBox
-		while (query.next())
-		{
+		while (query.next()) {
 			QString canalName = query.value(1).toString();
 			int canalNumber = query.value(0).toInt();
 			QLabel* label = new QLabel(QString("%1 :").arg(canalName), page);
@@ -396,11 +440,24 @@ void DMXProject::createFormForSelectedEquipements(const QList<QString>& selected
 	}
 
 	// Connecter le signal accepted() du QWizard à un slot pour enregistrer les paramètres de canal dans la base de données
-	connect(wizard, SIGNAL(accepted()), this, SLOT(saveSettings()));
+	connect(wizard, &QWizard::accepted, this, &DMXProject::saveSettings);
+
+	// Connecter les signaux finished et rejected pour gérer la redirection
+	connect(wizard, &QWizard::rejected, [this, wizard]() {
+		ui.stackedWidget->setCurrentIndex(1);
+		wizard->deleteLater();
+		});
+	connect(wizard, &QWizard::finished, [this, wizard]() {
+		ui.stackedWidget->setCurrentIndex(1);
+		wizard->deleteLater();
+		});
 
 	// Afficher le QWizard
 	wizard->show();
 }
+
+
+
 
 
 void DMXProject::clearForm()
