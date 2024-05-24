@@ -435,19 +435,20 @@ void DMXProject::createFormForSelectedEquipements(const QList<QString>& selected
 		QSqlQuery query(QString("SELECT idNumCanal, nom FROM champ WHERE idEquip = (SELECT id FROM equipement WHERE nom = '%1') ORDER BY idNumCanal").arg(equipementName));
 
 		// Ajouter des widgets pour chaque canal de cet équipement
-		QList<QPair<int, int>> channelData; // Ajouter une liste de paires pour stocker les valeurs des QSpinBox
+		QList<QPair<int, int>> channelData; // Ajouter une liste de paires pour stocker les valeurs des QSlider
 		while (query.next()) {
 			QString canalName = query.value(1).toString();
 			int canalNumber = query.value(0).toInt();
 			QLabel* label = new QLabel(QString("%1 :").arg(canalName), page);
-			QSpinBox* spinBox = new QSpinBox(page);
-			spinBox->setObjectName(QString("spinBox_%1").arg(canalNumber));
-			spinBox->setMaximum(255); // Définir la valeur maximale du QSpinBox à 255
+			QSlider* slider = new QSlider(Qt::Horizontal, page);
+			slider->setObjectName(QString("slider_%1").arg(canalNumber));
+			slider->setMinimum(0);
+			slider->setMaximum(255);
 			layout->addWidget(label);
-			layout->addWidget(spinBox);
+			layout->addWidget(slider);
 
-			// Ajouter la valeur du QSpinBox à la liste channelData
-			channelData.append(qMakePair(canalNumber, spinBox->value()));
+			// Ajouter la valeur du QSlider à la liste channelData
+			channelData.append(qMakePair(canalNumber, slider->value()));
 		}
 
 		// Ajouter la liste channelData à la page du QWizard
@@ -472,6 +473,9 @@ void DMXProject::createFormForSelectedEquipements(const QList<QString>& selected
 	// Afficher le QWizard
 	wizard->show();
 }
+
+
+
 
 
 
@@ -772,9 +776,10 @@ void DMXProject::handleModifyButtonClicked(int idEquipement, const QString& nomE
 }
 
 
-void DMXProject::saveSettings() {
+void DMXProject::saveSettings()
+{
 	// Récupérer l'ID de la scène sélectionnée
-	int idScene = scene->getSceneId(m_selectedScene); //getSceneId(m_selectedScene);
+	int idScene = scene->getSceneId(m_selectedScene);
 
 	QWizard* wizard = qobject_cast<QWizard*>(sender());
 	if (wizard) {
@@ -782,17 +787,17 @@ void DMXProject::saveSettings() {
 		for (QList<QWizardPage*>::iterator it = pages.begin(); it != pages.end(); ++it) {
 			QWizardPage* page = *it;
 
-			// Récupérer les valeurs actuelles des QSpinBox dans la page actuelle
+			// Récupérer les valeurs actuelles des QSlider dans la page actuelle
 			QList<QPair<int, int>> channelData;
-			QList<QSpinBox*> spinBoxes = page->findChildren<QSpinBox*>();
-			for (QSpinBox* spinBox : spinBoxes) {
-				// Récupérer le numéro de canal à partir du nom d'objet du QSpinBox
-				QString objectName = spinBox->objectName();
+			QList<QSlider*> sliders = page->findChildren<QSlider*>();
+			for (QSlider* slider : sliders) {
+				// Récupérer le numéro de canal à partir du nom d'objet du QSlider
+				QString objectName = slider->objectName();
 				int index = objectName.lastIndexOf('_');
 				int numCanal = objectName.mid(index + 1).toInt();
 
-				// Récupérer la valeur actuelle du QSpinBox
-				int valeur = spinBox->value();
+				// Récupérer la valeur actuelle du QSlider
+				int valeur = slider->value();
 
 				// Ajouter la paire (numCanal, valeur) à la liste channelData
 				channelData.append(qMakePair(numCanal, valeur));
@@ -806,6 +811,7 @@ void DMXProject::saveSettings() {
 	// Fermer le QWizard
 	qobject_cast<QWizard*>(sender())->close();
 }
+
 
 void DMXProject::sendDMXFrame()
 {

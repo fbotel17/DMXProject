@@ -9,6 +9,7 @@
 #include "Canal.h"
 #include "Champ.h"
 #include "ConsoleController.h"
+#include "ConsoleMaterielle.h"
 
 class DMXProject : public QMainWindow
 {

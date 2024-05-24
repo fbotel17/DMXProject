@@ -86,6 +86,7 @@
     <ClCompile Include="Canal.cpp" />
     <ClCompile Include="Champ.cpp" />
     <ClCompile Include="ConsoleController.cpp" />
+    <ClCompile Include="ConsoleMaterielle.cpp" />
     <ClCompile Include="Equipement.cpp" />
     <ClCompile Include="Scene.cpp" />
     <QtRcc Include="DMXProject.qrc" />
@@ -98,6 +99,7 @@
     <QtMoc Include="Canal.h" />
     <ClInclude Include="Champ.h" />
     <QtMoc Include="ConsoleController.h" />
+    <QtMoc Include="ConsoleMaterielle.h" />
     <ClInclude Include="Equipement.h" />
     <ClInclude Include="Scene.h" />
   </ItemGroup>
