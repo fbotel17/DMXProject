@@ -6,7 +6,7 @@ Equipement::Equipement()
     id = -1;
     nom = "";
     adresse = "";
-    nbCanaux = 0;
+    nbCanaux = 4;
 }
 
 Equipement::Equipement(int id, const QString& nom, const QString& adresse, int nbCanaux)
@@ -220,9 +220,21 @@ void Equipement::setAdresse(const QString& adresse)
     this->adresse = adresse;
 }
 
-int Equipement::getNbCanaux() const
+int Equipement::getNbCanaux(const QString& equipmentName) const
 {
-    return nbCanaux;
+    QSqlQuery query;
+    query.prepare("SELECT nbCanal FROM equipement WHERE nom = :nom");
+    query.bindValue(":nom", equipmentName);
+
+    if (query.exec() && query.next())
+    {
+        return query.value(0).toInt();
+    }
+    else
+    {
+        qDebug() << "Erreur lors de la récupération de l'ID de l'équipement : " << query.lastError().text();
+        return -1;
+    }
 }
 
 void Equipement::setNbCanaux(int nbCanaux)

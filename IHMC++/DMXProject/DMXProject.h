@@ -32,6 +32,12 @@ public:
 
 	void clearForm();
 	void Gerer_un_equipement();
+
+	void fillSceneComboBox2();
+	void fillEquipComboBox();
+
+	void createSlidersForEquipment(const QString& equipmentName);
+
 	
 
 
@@ -41,6 +47,7 @@ public slots:
 	void on_actionAjouter_un_equipement_triggered();
 	void on_actionSupprimer_un_equipement_triggered();
 	void on_actionTester_une_scene_triggered();
+	void on_actionArduino_triggered();
 
 	void on_pushButtonValider_clicked();
 	void on_buttonEquip_clicked();
@@ -51,6 +58,10 @@ public slots:
 	void handleModifyButtonClicked(int idEquipement, const QString& nomEquipement, const QString& adresseEquipement, int nbCanalEquipement);
 	void saveSettings();
 	void handleNewEquipmentButtonClicked();
+
+	void validateSceneEquipment();
+	void updateSliderValue(int value);
+
 
 private:
 	Ui::DMXProjectClass ui;
@@ -70,7 +81,8 @@ private:
 	QDataStream in;
 	QDataStream out;
 	ConsoleController *consoleController;
-
+	ConsoleMaterielle* consoleMaterielle;
+    QMap<int, QSlider*> channelSliders;
 
 };
 

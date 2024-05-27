@@ -33,7 +33,7 @@ public:
     void updateEquipement(int idEquipement, const QString& nomEquipement, const QString& adresseEquipement, int nbCanalEquipement);
     QList<Equipement> getAllEquipements();
     void afficherEquipements(QVBoxLayout* mainLayoutEquipements);
-    int getEquipmentId(const QString& equipmentName);
+    static int getEquipmentId(const QString& equipmentName);
     void supprimerEquipement(int idEquipement, DMXProject* dmx);
 
     int getId() const;
@@ -45,7 +45,7 @@ public:
     QString getAdresse() const;
     void setAdresse(const QString& adresse);
 
-    int getNbCanaux() const;
+    int getNbCanaux(const QString& equipmentName) const;
     void setNbCanaux(int nbCanaux);
 
 private:

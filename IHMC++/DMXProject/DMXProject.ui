@@ -18,7 +18,7 @@
     <item>
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="currentIndex">
-       <number>7</number>
+       <number>8</number>
       </property>
       <widget class="QWidget" name="page_3">
        <widget class="QWidget" name="formLayoutWidget">
@@ -443,6 +443,154 @@
         </property>
        </widget>
       </widget>
+      <widget class="QWidget" name="page_9">
+       <widget class="QLabel" name="valeurLabel">
+        <property name="geometry">
+         <rect>
+          <x>176</x>
+          <y>500</y>
+          <width>71</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Valeur de </string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="nomSceneLabel">
+        <property name="geometry">
+         <rect>
+          <x>176</x>
+          <y>400</y>
+          <width>111</width>
+          <height>16</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Nom de la scene :</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="nomSceneAfficheLabel">
+        <property name="geometry">
+         <rect>
+          <x>290</x>
+          <y>400</y>
+          <width>151</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+       <widget class="QLabel" name="valeurAfficheLabel">
+        <property name="geometry">
+         <rect>
+          <x>256</x>
+          <y>520</y>
+          <width>121</width>
+          <height>16</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="validateCanalButton">
+        <property name="geometry">
+         <rect>
+          <x>970</x>
+          <y>640</y>
+          <width>93</width>
+          <height>28</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Valider</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="sceneLabel">
+        <property name="geometry">
+         <rect>
+          <x>120</x>
+          <y>40</y>
+          <width>111</width>
+          <height>16</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Choisir une scene</string>
+        </property>
+       </widget>
+       <widget class="QComboBox" name="SceneComboBox">
+        <property name="geometry">
+         <rect>
+          <x>280</x>
+          <y>40</y>
+          <width>131</width>
+          <height>21</height>
+         </rect>
+        </property>
+       </widget>
+       <widget class="QLabel" name="equipLabel">
+        <property name="geometry">
+         <rect>
+          <x>550</x>
+          <y>40</y>
+          <width>141</width>
+          <height>16</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Choisir un equipement</string>
+        </property>
+       </widget>
+       <widget class="QComboBox" name="EquipComboBox">
+        <property name="geometry">
+         <rect>
+          <x>730</x>
+          <y>40</y>
+          <width>131</width>
+          <height>22</height>
+         </rect>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="ValidSceneEquipButton">
+        <property name="geometry">
+         <rect>
+          <x>960</x>
+          <y>40</y>
+          <width>93</width>
+          <height>28</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Valider</string>
+        </property>
+       </widget>
+       <widget class="QWidget" name="horizontalLayoutWidget_3">
+        <property name="geometry">
+         <rect>
+          <x>410</x>
+          <y>450</y>
+          <width>701</width>
+          <height>141</height>
+         </rect>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayoutSlideBar">
+         <item>
+          <widget class="QSlider" name="verticalSlider">
+           <property name="maximum">
+            <number>255</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
      </widget>
     </item>
    </layout>
@@ -453,7 +601,7 @@
      <x>0</x>
      <y>0</y>
      <width>1271</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuChoisir">
@@ -464,6 +612,7 @@
     <addaction name="actionCreer_une_sc_ne"/>
     <addaction name="actionConfigurer_une_sc_ne_2"/>
     <addaction name="actionTester_une_scene"/>
+    <addaction name="actionArduino"/>
    </widget>
    <addaction name="menuChoisir"/>
   </widget>
@@ -502,6 +651,11 @@
   <action name="actionTester_une_scene">
    <property name="text">
     <string>Tester une scene</string>
+   </property>
+  </action>
+  <action name="actionArduino">
+   <property name="text">
+    <string>Arduino</string>
    </property>
   </action>
  </widget>

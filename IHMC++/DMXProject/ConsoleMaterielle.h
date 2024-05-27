@@ -1,24 +1,24 @@
 #pragma once
-#include <qobject.h>
-#include <qserialport.h>
+
+#include <QObject>
+#include <QSerialPort>
+#include <QSlider>
 
 class ConsoleMaterielle : public QObject
 {
-	Q_OBJECT
-
-		QSerialPort* port;
+    Q_OBJECT
 
 public:
-	ConsoleMaterielle();
-	~ConsoleMaterielle();
-
-private slots:
-	void onDataReceived();
+    ConsoleMaterielle(QSlider* slider, QObject* parent = nullptr);
+    ~ConsoleMaterielle();
 
 signals:
-	void channelValueChanged(int);
-	//void nextChannel();
-	//void previousChannel();
+    void channelValueChanged(int value);
 
+private slots:
+    void onDataReceived();
+
+private:
+    QSerialPort* port;
+    QSlider* slider;
 };
-

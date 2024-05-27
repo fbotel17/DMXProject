@@ -1,52 +1,57 @@
 #include "ConsoleMaterielle.h"
 
-ConsoleMaterielle::ConsoleMaterielle()
+ConsoleMaterielle::ConsoleMaterielle(QSlider* slider, QObject* parent)
+    : QObject(parent), slider(slider)
 {
-	port = new QSerialPort("COM8", this);
-	QObject::connect(port, SIGNAL(readyRead()), this, SLOT(onDataReceived()));
-	port->setBaudRate(9600);
-	port->setDataBits(QSerialPort::Data8);
-	port->setParity(QSerialPort::NoParity);
-	port->open(QIODevice::ReadWrite);
+    port = new QSerialPort("COM8", this);
+    connect(port, &QSerialPort::readyRead, this, &ConsoleMaterielle::onDataReceived);
+    port->setBaudRate(9600);
+    port->setDataBits(QSerialPort::Data8);
+    port->setParity(QSerialPort::NoParity);
+    port->setFlowControl(QSerialPort::NoFlowControl);
+
+    if (!port->open(QIODevice::ReadWrite)) {
+        qWarning() << "Failed to open port" << port->portName() << ", error:" << port->errorString();
+    }
 }
 
 ConsoleMaterielle::~ConsoleMaterielle()
 {
-	port->deleteLater();
+    if (port->isOpen()) {
+        port->close();
+    }
+    delete port;
 }
-
 
 void ConsoleMaterielle::onDataReceived()
 {
-	if (port->canReadLine())
-	{
-		QByteArray data = port->readLine();
+    if (!port->canReadLine())
+        return;
 
-		if (data.startsWith("V"))		// Valeur potentiomètre
-		{
-			QString str = QString::fromUtf8(data);
-			QStringRef substr(&str, 1, str.length() - 1);
-			QString valueStr = substr.toString();
+    QByteArray data = port->readLine();
 
-			int val = valueStr.toInt();
-			double dval = val;
-			dval = dval / 1024.0 * 255.0;
-			val = dval;
+    if (data.startsWith("V")) { // Valeur potentiomètre
+        QString str = QString::fromUtf8(data);
+        QStringRef substr(&str, 1, str.length() - 1);
+        QString valueStr = substr.toString();
 
-			emit channelValueChanged(val);
-		}
+        int val = valueStr.toInt();
+        double dval = val / 1024.0 * 255.0;
+        val = static_cast<int>(dval);
 
-		else if (data.startsWith("J"))    // Mouvement du joystick
-		{
-			QString str = QString::fromUtf8(data);
-			if (str.contains("LEFT"))
-			{
-				//emit previousChannel();
-			}
-			else if (str.contains("RIGHT"))
-			{
-				//emit nextChannel();
-			}
-		}
-	}
+        emit channelValueChanged(val);
+
+        if (slider) {
+            slider->setValue(val);
+        }
+    }
+    else if (data.startsWith("J")) { // Mouvement du joystick
+        QString str = QString::fromUtf8(data);
+        if (str.contains("LEFT")) {
+            //emit previousChannel();
+        }
+        else if (str.contains("RIGHT")) {
+            //emit nextChannel();
+        }
+    }
 }

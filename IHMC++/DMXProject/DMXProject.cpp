@@ -38,6 +38,8 @@ DMXProject::DMXProject(QWidget* parent) : QMainWindow(parent) {
 		return;
 	}
 
+	consoleMaterielle = new ConsoleMaterielle(ui.verticalSlider, this);
+
 	// Connexion au serveur TCP
 	QTcpSocket* socket = new QTcpSocket(this);
 	socket->connectToHost("192.168.64.170", 12345); // Remplacez 12345 par le numéro de port de votre serveur
@@ -52,6 +54,11 @@ DMXProject::DMXProject(QWidget* parent) : QMainWindow(parent) {
 	connect(consoleController, &ConsoleController::sceneAddRequested, this, &DMXProject::on_actionCreer_une_sc_ne_triggered);
 	connect(consoleController, &ConsoleController::sceneEditRequested, this, &DMXProject::on_actionConfigurer_une_sc_ne_2_triggered);
 	connect(consoleController, &ConsoleController::sceneDeleteRequested, this, &DMXProject::on_actionSupprimer_un_equipement_triggered);
+	connect(ui.ValidSceneEquipButton, &QPushButton::clicked, this, &DMXProject::validateSceneEquipment);
+	connect(consoleMaterielle, &ConsoleMaterielle::channelValueChanged, this, &DMXProject::updateSliderValue);
+
+
+
 	connect(consoleController, &ConsoleController::sendSceneNamesRequested, this, &DMXProject::sendSceneNamesToArduino);
 
 	// Afficher toutes les scènes existantes
@@ -66,6 +73,8 @@ DMXProject::DMXProject(QWidget* parent) : QMainWindow(parent) {
 
 	afficherScenesCheckbox();
 	Gerer_un_equipement();
+	fillSceneComboBox2();
+	fillEquipComboBox();
 
 	connect(ui.testSceneButton, &QPushButton::clicked, this, &DMXProject::testScene);
 
@@ -169,6 +178,11 @@ void DMXProject::on_actionTester_une_scene_triggered()
 {
 	fillSceneComboBox();
 	ui.stackedWidget->setCurrentIndex(6);
+}
+
+void DMXProject::on_actionArduino_triggered()
+{
+	ui.stackedWidget->setCurrentIndex(8);
 }
 
 
@@ -435,20 +449,19 @@ void DMXProject::createFormForSelectedEquipements(const QList<QString>& selected
 		QSqlQuery query(QString("SELECT idNumCanal, nom FROM champ WHERE idEquip = (SELECT id FROM equipement WHERE nom = '%1') ORDER BY idNumCanal").arg(equipementName));
 
 		// Ajouter des widgets pour chaque canal de cet équipement
-		QList<QPair<int, int>> channelData; // Ajouter une liste de paires pour stocker les valeurs des QSlider
+		QList<QPair<int, int>> channelData; // Ajouter une liste de paires pour stocker les valeurs des QSpinBox
 		while (query.next()) {
 			QString canalName = query.value(1).toString();
 			int canalNumber = query.value(0).toInt();
 			QLabel* label = new QLabel(QString("%1 :").arg(canalName), page);
-			QSlider* slider = new QSlider(Qt::Horizontal, page);
-			slider->setObjectName(QString("slider_%1").arg(canalNumber));
-			slider->setMinimum(0);
-			slider->setMaximum(255);
+			QSpinBox* spinBox = new QSpinBox(page);
+			spinBox->setObjectName(QString("spinBox_%1").arg(canalNumber));
+			spinBox->setMaximum(255); // Définir la valeur maximale du QSpinBox à 255
 			layout->addWidget(label);
-			layout->addWidget(slider);
+			layout->addWidget(spinBox);
 
-			// Ajouter la valeur du QSlider à la liste channelData
-			channelData.append(qMakePair(canalNumber, slider->value()));
+			// Ajouter la valeur du QSpinBox à la liste channelData
+			channelData.append(qMakePair(canalNumber, spinBox->value()));
 		}
 
 		// Ajouter la liste channelData à la page du QWizard
@@ -473,9 +486,6 @@ void DMXProject::createFormForSelectedEquipements(const QList<QString>& selected
 	// Afficher le QWizard
 	wizard->show();
 }
-
-
-
 
 
 
@@ -776,10 +786,9 @@ void DMXProject::handleModifyButtonClicked(int idEquipement, const QString& nomE
 }
 
 
-void DMXProject::saveSettings()
-{
+void DMXProject::saveSettings() {
 	// Récupérer l'ID de la scène sélectionnée
-	int idScene = scene->getSceneId(m_selectedScene);
+	int idScene = scene->getSceneId(m_selectedScene); //getSceneId(m_selectedScene);
 
 	QWizard* wizard = qobject_cast<QWizard*>(sender());
 	if (wizard) {
@@ -787,17 +796,17 @@ void DMXProject::saveSettings()
 		for (QList<QWizardPage*>::iterator it = pages.begin(); it != pages.end(); ++it) {
 			QWizardPage* page = *it;
 
-			// Récupérer les valeurs actuelles des QSlider dans la page actuelle
+			// Récupérer les valeurs actuelles des QSpinBox dans la page actuelle
 			QList<QPair<int, int>> channelData;
-			QList<QSlider*> sliders = page->findChildren<QSlider*>();
-			for (QSlider* slider : sliders) {
-				// Récupérer le numéro de canal à partir du nom d'objet du QSlider
-				QString objectName = slider->objectName();
+			QList<QSpinBox*> spinBoxes = page->findChildren<QSpinBox*>();
+			for (QSpinBox* spinBox : spinBoxes) {
+				// Récupérer le numéro de canal à partir du nom d'objet du QSpinBox
+				QString objectName = spinBox->objectName();
 				int index = objectName.lastIndexOf('_');
 				int numCanal = objectName.mid(index + 1).toInt();
 
-				// Récupérer la valeur actuelle du QSlider
-				int valeur = slider->value();
+				// Récupérer la valeur actuelle du QSpinBox
+				int valeur = spinBox->value();
 
 				// Ajouter la paire (numCanal, valeur) à la liste channelData
 				channelData.append(qMakePair(numCanal, valeur));
@@ -811,7 +820,6 @@ void DMXProject::saveSettings()
 	// Fermer le QWizard
 	qobject_cast<QWizard*>(sender())->close();
 }
-
 
 void DMXProject::sendDMXFrame()
 {
@@ -923,4 +931,58 @@ void afficherEmplacementsLibresDansTrame() {
 	// Affichage des emplacements libres dans une boîte de dialogue
 	QMessageBox::information(nullptr, "Emplacements libres dans la trame",
 		QString("Nombre d'emplacements libres dans la trame : %1").arg(nombreEmplacementsLibres));
+}
+
+void DMXProject::fillSceneComboBox2() {
+	Scene scene;
+	QList<Scene> scenes = scene.getAllScenes();
+	foreach(const Scene & s, scenes) {
+		ui.SceneComboBox->addItem(s.getNom());
+	}
+}
+
+
+void DMXProject::fillEquipComboBox() {
+	Equipement equip;
+	QList<Equipement> equips = equip.getAllEquipements();
+	foreach(const Equipement & e, equips) {
+		ui.EquipComboBox->addItem(e.getNom());
+	}
+}
+
+
+void DMXProject::validateSceneEquipment() {
+	// 1. Récupérer le nom de la scène sélectionnée dans la combobox SceneComboBox
+	QString sceneName = ui.SceneComboBox->currentText();
+
+	// 2. Récupérer le nom de l'équipement sélectionné dans la combobox EquipComboBox
+	QString equipmentName = ui.EquipComboBox->currentText();
+
+	// 3. Afficher le nom de la scène sélectionnée dans le label nomSceneAfficheLabel
+	ui.nomSceneAfficheLabel->setText(sceneName);
+
+	// 4. En fonction de l'équipement sélectionné, créer dynamiquement les sliders nécessaires pour contrôler les canaux de l'équipement
+	// Ici, vous pouvez implémenter la logique pour créer et afficher les sliders en fonction de l'équipement sélectionné
+	// Par exemple, vous pouvez avoir une fonction pour créer les sliders et les ajouter à un layout défini dans votre interface.
+	// Voici un exemple de fonction pour créer un slider :
+	createSlidersForEquipment(equipmentName);
+}
+
+void DMXProject::updateSliderValue(int value)
+{
+	ui.verticalSlider->setValue(value);
+}
+
+
+void DMXProject::createSlidersForEquipment(const QString& equipmentName) {
+	// Récupérer l'équipement correspondant au nom
+	Equipement equipment;
+	int numChannels = equipment.getNbCanaux(equipmentName);
+
+	// Créer et ajouter les sliders au layout verticalLayoutSlideBar
+	for (int i = 0; i < numChannels; ++i) {
+		QSlider* slider = new QSlider(Qt::Vertical);
+		slider->setObjectName("slider_" + equipmentName + "_channel_" + QString::number(i + 1));
+		ui.horizontalLayoutSlideBar->addWidget(slider);
+	}
 }
