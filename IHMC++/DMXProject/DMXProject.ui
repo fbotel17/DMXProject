@@ -444,17 +444,17 @@
        </widget>
       </widget>
       <widget class="QWidget" name="page_9">
-       <widget class="QLabel" name="valeurLabel">
+       <widget class="QLabel" name="champLabel">
         <property name="geometry">
          <rect>
-          <x>176</x>
+          <x>146</x>
           <y>500</y>
-          <width>71</width>
+          <width>101</width>
           <height>51</height>
          </rect>
         </property>
         <property name="text">
-         <string>Valeur de </string>
+         <string>Nom du champ :</string>
         </property>
        </widget>
        <widget class="QLabel" name="nomSceneLabel">

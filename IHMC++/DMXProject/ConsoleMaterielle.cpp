@@ -1,4 +1,5 @@
 #include "ConsoleMaterielle.h"
+#include <QDebug>
 
 ConsoleMaterielle::ConsoleMaterielle(QSlider* slider, QObject* parent)
     : QObject(parent), slider(slider)
@@ -48,10 +49,15 @@ void ConsoleMaterielle::onDataReceived()
     else if (data.startsWith("J")) { // Mouvement du joystick
         QString str = QString::fromUtf8(data);
         if (str.contains("LEFT")) {
-            //emit previousChannel();
+            emit previousChannel();
         }
         else if (str.contains("RIGHT")) {
-            //emit nextChannel();
+            emit nextChannel();
         }
     }
+    else if (data.startsWith("CONFIRM")) { // Bouton de confirmation
+        emit confirmButtonPressed();
+    }
 }
+
+

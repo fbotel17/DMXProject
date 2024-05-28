@@ -57,6 +57,8 @@ DMXProject::DMXProject(QWidget* parent) : QMainWindow(parent) {
 	connect(ui.ValidSceneEquipButton, &QPushButton::clicked, this, &DMXProject::validateSceneEquipment);
 	connect(consoleMaterielle, &ConsoleMaterielle::channelValueChanged, this, &DMXProject::updateSliderValue);
 
+	connect(ui.SceneComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &DMXProject::validateSceneEquipment);
+	connect(ui.EquipComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &DMXProject::validateSceneEquipment);
 
 
 	connect(consoleController, &ConsoleController::sendSceneNamesRequested, this, &DMXProject::sendSceneNamesToArduino);
@@ -75,6 +77,7 @@ DMXProject::DMXProject(QWidget* parent) : QMainWindow(parent) {
 	Gerer_un_equipement();
 	fillSceneComboBox2();
 	fillEquipComboBox();
+	validateSceneEquipment();
 
 	connect(ui.testSceneButton, &QPushButton::clicked, this, &DMXProject::testScene);
 
@@ -951,38 +954,51 @@ void DMXProject::fillEquipComboBox() {
 }
 
 
-void DMXProject::validateSceneEquipment() {
-	// 1. Récupérer le nom de la scène sélectionnée dans la combobox SceneComboBox
-	QString sceneName = ui.SceneComboBox->currentText();
+void DMXProject::validateSceneEquipment()
+{
+	int sceneIndex = ui.SceneComboBox->currentIndex();
+	int equipIndex = ui.EquipComboBox->currentIndex();
 
-	// 2. Récupérer le nom de l'équipement sélectionné dans la combobox EquipComboBox
-	QString equipmentName = ui.EquipComboBox->currentText();
-
-	// 3. Afficher le nom de la scène sélectionnée dans le label nomSceneAfficheLabel
-	ui.nomSceneAfficheLabel->setText(sceneName);
-
-	// 4. En fonction de l'équipement sélectionné, créer dynamiquement les sliders nécessaires pour contrôler les canaux de l'équipement
-	// Ici, vous pouvez implémenter la logique pour créer et afficher les sliders en fonction de l'équipement sélectionné
-	// Par exemple, vous pouvez avoir une fonction pour créer les sliders et les ajouter à un layout défini dans votre interface.
-	// Voici un exemple de fonction pour créer un slider :
-	createSlidersForEquipment(equipmentName);
+	if (sceneIndex != -1 && equipIndex != -1) {
+		showEquipmentFields(equipIndex);
+	}
 }
 
 void DMXProject::updateSliderValue(int value)
 {
 	ui.verticalSlider->setValue(value);
+
+	if (currentFieldIndex < sliderValues.size()) {
+		sliderValues[currentFieldIndex] = value;
+	}
+	else {
+		sliderValues.append(value);
+	}
 }
 
+void DMXProject::showEquipmentFields(int equipIndex)
+{
+	// Logique pour afficher les champs de l'équipement
+	qDebug() << "Showing fields for equipment at index:" << equipIndex;
 
-void DMXProject::createSlidersForEquipment(const QString& equipmentName) {
-	// Récupérer l'équipement correspondant au nom
-	Equipement equipment;
-	int numChannels = equipment.getNbCanaux(equipmentName);
+	// Réinitialiser l'index de champ actuel et les valeurs des sliders
+	currentFieldIndex = 0;
+	sliderValues.clear();
+}
 
-	// Créer et ajouter les sliders au layout verticalLayoutSlideBar
-	for (int i = 0; i < numChannels; ++i) {
-		QSlider* slider = new QSlider(Qt::Vertical);
-		slider->setObjectName("slider_" + equipmentName + "_channel_" + QString::number(i + 1));
-		ui.horizontalLayoutSlideBar->addWidget(slider);
+void DMXProject::onConfirmButtonPressed()
+{
+	// Enregistrer la valeur actuelle et passer au champ suivant
+	int value = ui.verticalSlider->value();
+	if (currentFieldIndex < sliderValues.size()) {
+		sliderValues[currentFieldIndex] = value;
 	}
+	else {
+		sliderValues.append(value);
+	}
+
+	currentFieldIndex++;
+	qDebug() << "Current field index:" << currentFieldIndex << "Slider values:" << sliderValues;
+
+	// Logique pour gérer l'affichage du champ suivant
 }

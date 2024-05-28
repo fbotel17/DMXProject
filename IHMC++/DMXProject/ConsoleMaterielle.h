@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QSerialPort>
 #include <QSlider>
+#include <QDebug>
 
 class ConsoleMaterielle : public QObject
 {
@@ -14,6 +15,9 @@ public:
 
 signals:
     void channelValueChanged(int value);
+    void previousChannel();
+    void nextChannel();
+    void confirmButtonPressed();
 
 private slots:
     void onDataReceived();

@@ -35,8 +35,7 @@ public:
 
 	void fillSceneComboBox2();
 	void fillEquipComboBox();
-
-	void createSlidersForEquipment(const QString& equipmentName);
+	void showEquipmentFields(int equipIndex);
 
 	
 
@@ -61,6 +60,7 @@ public slots:
 
 	void validateSceneEquipment();
 	void updateSliderValue(int value);
+	void onConfirmButtonPressed();
 
 
 private:
@@ -83,6 +83,9 @@ private:
 	ConsoleController *consoleController;
 	ConsoleMaterielle* consoleMaterielle;
     QMap<int, QSlider*> channelSliders;
+	QList<int> sliderValues; // Variable pour stocker les valeurs des sliders
+	int currentFieldIndex; // Index du champ actuel
+
 
 };
 
