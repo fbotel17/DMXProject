@@ -18,7 +18,7 @@
     <item>
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="currentIndex">
-       <number>8</number>
+       <number>7</number>
       </property>
       <widget class="QWidget" name="page_3">
        <widget class="QWidget" name="formLayoutWidget">
@@ -601,7 +601,7 @@
      <x>0</x>
      <y>0</y>
      <width>1271</width>
-     <height>26</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuChoisir">

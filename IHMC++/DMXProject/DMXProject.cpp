@@ -42,7 +42,7 @@ DMXProject::DMXProject(QWidget* parent) : QMainWindow(parent) {
 
 	// Connexion au serveur TCP
 	QTcpSocket* socket = new QTcpSocket(this);
-	socket->connectToHost("192.168.64.170", 12345); // Remplacez 12345 par le numéro de port de votre serveur
+	socket->connectToHost("192.168.64.170", 12345);
 
 	// Connexion à l'Arduino
 	consoleController = new ConsoleController(this);
