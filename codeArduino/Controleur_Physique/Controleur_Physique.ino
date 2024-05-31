@@ -1,40 +1,38 @@
-#include <Wire.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
-
-#define SCREEN_WIDTH 128
-#define SCREEN_HEIGHT 64
-
-#define OLED_RESET 4
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+const int buttonPin = A2; // Le bouton est connecté à A2
+int buttonState = 0; // Variable pour stocker l'état du bouton
 
 void setup() {
   Serial.begin(9600);
+  while (!Serial);
 
-  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
-    Serial.println(F("Échec de l'allocation SSD1306"));
-    for (;;);
-  }
-
-  display.clearDisplay();
-  display.setTextColor(WHITE);
-  display.setTextSize(1);
-  display.setCursor(0, 0);
-  display.println("Donnees recues:");
-  display.display();
+  pinMode(buttonPin, INPUT);
 }
 
 void loop() {
-  if (Serial.available() > 0) {
-    String receivedData = Serial.readStringUntil('\n');
+  // Lire la valeur du potentiomètre
+  int val = analogRead(A3);
+  String str = "V";
+  str += val;
+  Serial.println(str);
 
-    display.clearDisplay();
-    display.setTextSize(1);
-    display.setTextColor(WHITE);
-    display.setCursor(0, 0);
-    display.println("Donnees recues:");
-    display.setCursor(0, 20);
-    display.println(receivedData);
-    display.display();
+  // Lire les valeurs du joystick
+  int joystickX = analogRead(A0);
+  int joystickY = analogRead(A1);
+
+  // Détecter le mouvement du joystick vers la gauche ou la droite
+  if (joystickX < 300) { // Si la valeur est inférieure à un seuil, mouvement vers la gauche
+    Serial.println("JLEFT");
+  } else if (joystickX > 700) { // Si la valeur est supérieure à un seuil, mouvement vers la droite
+    Serial.println("JRIGHT");
   }
+
+  // Lire l'état du bouton
+  buttonState = digitalRead(buttonPin);
+
+  // Si le bouton est pressé, envoyer "CONFIRM" à l'interface utilisateur
+  if (buttonState == HIGH) {
+    Serial.println("CONFIRM");
+  }
+
+  delay(20);
 }
