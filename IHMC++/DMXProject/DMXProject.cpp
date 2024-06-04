@@ -193,6 +193,11 @@ void DMXProject::on_actionArduino_triggered()
 	ui.stackedWidget->setCurrentIndex(8);
 }
 
+void DMXProject::on_actionGerer_une_scene_triggered()
+{
+	ui.stackedWidget->setCurrentIndex(9);
+}
+
 
 // Modifiez votre slot on_buttonEquip_clicked pour appeler cette fonction
 void DMXProject::on_buttonEquip_clicked() {

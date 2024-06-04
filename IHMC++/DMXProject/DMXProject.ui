@@ -591,6 +591,7 @@
         </layout>
        </widget>
       </widget>
+      <widget class="QWidget" name="page_10"/>
      </widget>
     </item>
    </layout>
@@ -609,6 +610,7 @@
      <string>Choisir</string>
     </property>
     <addaction name="actionSupprimer_un_equipement"/>
+    <addaction name="actionGerer_une_scene"/>
     <addaction name="actionCreer_une_sc_ne"/>
     <addaction name="actionConfigurer_une_sc_ne_2"/>
     <addaction name="actionTester_une_scene"/>
@@ -656,6 +658,11 @@
   <action name="actionArduino">
    <property name="text">
     <string>Arduino</string>
+   </property>
+  </action>
+  <action name="actionGerer_une_scene">
+   <property name="text">
+    <string>Gerer une scene</string>
    </property>
   </action>
  </widget>

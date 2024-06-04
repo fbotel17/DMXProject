@@ -53,6 +53,7 @@ public slots:
 	void on_actionSupprimer_un_equipement_triggered();
 	void on_actionTester_une_scene_triggered();
 	void on_actionArduino_triggered();
+	void on_actionGerer_une_scene_triggered();
 
 	void on_pushButtonValider_clicked();
 	void on_buttonEquip_clicked();

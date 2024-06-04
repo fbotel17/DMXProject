@@ -7,8 +7,11 @@
 #define OLED_RESET -1
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-const int buttonPin = A3; // Le bouton est connecté à A2
-int buttonState = 0; // Variable pour stocker l'état du bouton
+const int buttonPin = A3;
+int buttonState = 0;
+int lastButtonState = 0; // Nouvelle variable pour l'état précédent du bouton
+unsigned long lastButtonDebounceTime = 0; // Nouvelle variable pour stocker le temps du dernier rebond
+unsigned long buttonDebounceDelay = 50; // Délai de rebond en millisecondes
 
 void setup() {
   Serial.begin(9600);
@@ -49,12 +52,25 @@ void loop() {
     Serial.println("JRIGHT");
   }
 
-  // Lire l'état du bouton
-  buttonState = digitalRead(buttonPin);
+  // Lire l'état du bouton avec hystérésis et délai de rebond
+  unsigned long currentMillis = millis();
+  if (currentMillis - lastButtonDebounceTime >= buttonDebounceDelay) {
+    int reading = digitalRead(buttonPin);
+    if (reading != lastButtonState) {
+      lastButtonDebounceTime = currentMillis;
+      if (reading == HIGH && lastButtonState == LOW) {
+        buttonState = HIGH;
+      } else {
+        buttonState = LOW;
+      }
+    }
+    lastButtonState = reading;
+  }
 
   // Si le bouton est pressé, envoyer "CONFIRM" à l'interface utilisateur
   if (buttonState == HIGH) {
     Serial.println("CONFIRM");
+    buttonState = LOW; // Réinitialiser l'état du bouton après l'envoi
   }
 
   // Lire les messages série et mettre à jour l'écran OLED
@@ -65,6 +81,7 @@ void loop() {
 
   delay(20);
 }
+
 
 void displayMessage(String message) {
   display.clearDisplay();
