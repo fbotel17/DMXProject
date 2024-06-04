@@ -37,6 +37,11 @@ public:
 	void fillEquipComboBox();
 	void showEquipmentFields(int equipIndex);
 
+	void fetchEquipmentChampData(int equipId);
+	void saveSceneEquipmentData(int sceneId, int equipId);
+	void onValidSceneEquipButtonClicked();
+	void onValidateCanalButtonClicked();
+
 	
 
 
@@ -57,10 +62,7 @@ public slots:
 	void handleModifyButtonClicked(int idEquipement, const QString& nomEquipement, const QString& adresseEquipement, int nbCanalEquipement);
 	void saveSettings();
 	void handleNewEquipmentButtonClicked();
-
-	void validateSceneEquipment();
-	void updateSliderValue(int value);
-	void onConfirmButtonPressed();
+	void onValidSceneEquipButtonClickedArduino();
 
 
 private:
@@ -85,6 +87,10 @@ private:
     QMap<int, QSlider*> channelSliders;
 	QList<int> sliderValues; // Variable pour stocker les valeurs des sliders
 	int currentFieldIndex; // Index du champ actuel
+
+	QList<QString> m_champNames;
+	QList<int> m_champNumbers;
+	int m_currentChampIndex;
 
 
 };

@@ -54,14 +54,15 @@ DMXProject::DMXProject(QWidget* parent) : QMainWindow(parent) {
 	connect(consoleController, &ConsoleController::sceneAddRequested, this, &DMXProject::on_actionCreer_une_sc_ne_triggered);
 	connect(consoleController, &ConsoleController::sceneEditRequested, this, &DMXProject::on_actionConfigurer_une_sc_ne_2_triggered);
 	connect(consoleController, &ConsoleController::sceneDeleteRequested, this, &DMXProject::on_actionSupprimer_un_equipement_triggered);
-	connect(ui.ValidSceneEquipButton, &QPushButton::clicked, this, &DMXProject::validateSceneEquipment);
-	connect(consoleMaterielle, &ConsoleMaterielle::channelValueChanged, this, &DMXProject::updateSliderValue);
-
-	connect(ui.SceneComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &DMXProject::validateSceneEquipment);
-	connect(ui.EquipComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &DMXProject::validateSceneEquipment);
 
 
 	connect(consoleController, &ConsoleController::sendSceneNamesRequested, this, &DMXProject::sendSceneNamesToArduino);
+
+	connect(ui.ValidSceneEquipButton, &QPushButton::clicked, this, &DMXProject::onValidSceneEquipButtonClicked);
+	connect(ui.ValidSceneEquipButton, &QPushButton::clicked, this, &DMXProject::onValidSceneEquipButtonClickedArduino);
+	connect(ui.validateCanalButton, &QPushButton::clicked, this, &DMXProject::onValidateCanalButtonClicked);
+
+
 
 	// Afficher toutes les scènes existantes
 	Scene scene;
@@ -77,7 +78,6 @@ DMXProject::DMXProject(QWidget* parent) : QMainWindow(parent) {
 	Gerer_un_equipement();
 	fillSceneComboBox2();
 	fillEquipComboBox();
-	validateSceneEquipment();
 
 	connect(ui.testSceneButton, &QPushButton::clicked, this, &DMXProject::testScene);
 
@@ -954,51 +954,134 @@ void DMXProject::fillEquipComboBox() {
 }
 
 
-void DMXProject::validateSceneEquipment()
-{
+void DMXProject::onValidSceneEquipButtonClicked() {
+	// Récupérer l'index de la scène sélectionnée dans le QComboBox
+	int index = ui.SceneComboBox->currentIndex();
+
+	// Vérifier si une scène est sélectionnée
+	if (index != -1) {
+		// Récupérer le nom de la scène sélectionnée
+		QString sceneName = ui.SceneComboBox->currentText();
+
+		// Afficher le nom de la scène dans le QLabel
+		ui.nomSceneAfficheLabel->setText(sceneName);
+	}
+	else {
+		// Aucune scène sélectionnée, afficher un message d'erreur ou laisser le QLabel vide
+		ui.nomSceneAfficheLabel->setText("");
+	}
+}
+
+void DMXProject::fetchEquipmentChampData(int equipId) {
+	QSqlQuery query;
+	query.prepare("SELECT champ.nom, champ.idNumCanal "
+		"FROM champ "
+		"JOIN equipement ON champ.idEquip = equipement.id "
+		"WHERE equipement.id = ? "
+		"ORDER BY champ.idNumCanal");
+	query.addBindValue(equipId);
+
+	if (query.exec()) {
+		m_champNames.clear();
+		m_champNumbers.clear();
+		while (query.next()) {
+			m_champNames.append(query.value(0).toString());
+			m_champNumbers.append(query.value(1).toInt());
+		}
+		m_currentChampIndex = 0;
+
+		// Afficher le nom du premier champ dans le QLabel
+		if (!m_champNames.isEmpty()) {
+			ui.valeurAfficheLabel->setText(m_champNames.at(m_currentChampIndex));
+		}
+	}
+	else {
+		qDebug() << "Erreur lors de l'exécution de la requête : " << query.lastError();
+	}
+}
+
+void DMXProject::saveSceneEquipmentData(int sceneId, int equipId) {
+	QSqlQuery query;
+
+	for (int i = 0; i < m_champNumbers.count(); ++i) {
+		int canalValue = ui.verticalSlider->value(); 
+
+		query.prepare("INSERT INTO canaux (numCanal, idScene, valeur) "
+			"VALUES (?, ?, ?)");
+		query.addBindValue(m_champNumbers.at(i));
+		query.addBindValue(sceneId);
+		query.addBindValue(canalValue);
+
+		if (!query.exec()) {
+			qDebug() << "Erreur lors de l'exécution de la requête : " << query.lastError();
+			return;
+		}
+	}
+
+	// Réinitialiser les données et l'index du champ courant
+	m_champNames.clear();
+	m_champNumbers.clear();
+	m_currentChampIndex = 0;
+
+}
+
+void DMXProject::onValidSceneEquipButtonClickedArduino() {
+	// Récupérer l'index de la scène sélectionnée dans le QComboBox
 	int sceneIndex = ui.SceneComboBox->currentIndex();
-	int equipIndex = ui.EquipComboBox->currentIndex();
 
-	if (sceneIndex != -1 && equipIndex != -1) {
-		showEquipmentFields(equipIndex);
-	}
-}
+	// Vérifier si une scène est sélectionnée
+	if (sceneIndex != -1) {
+		// Récupérer l'index de l'équipement sélectionné dans le QComboBox
+		int equipIndex = ui.EquipComboBox->currentIndex();
 
-void DMXProject::updateSliderValue(int value)
-{
-	ui.verticalSlider->setValue(value);
+		// Vérifier si un équipement est sélectionné
+		if (equipIndex != -1) {
+			// Récupérer l'ID de l'équipement sélectionné à partir de vos données d'équipement
 
-	if (currentFieldIndex < sliderValues.size()) {
-		sliderValues[currentFieldIndex] = value;
-	}
-	else {
-		sliderValues.append(value);
-	}
-}
+			QString equipName = ui.EquipComboBox->currentText();
 
-void DMXProject::showEquipmentFields(int equipIndex)
-{
-	// Logique pour afficher les champs de l'équipement
-	qDebug() << "Showing fields for equipment at index:" << equipIndex;
+			int equipId = equipement->getEquipmentId(equipName);
 
-	// Réinitialiser l'index de champ actuel et les valeurs des sliders
-	currentFieldIndex = 0;
-	sliderValues.clear();
-}
-
-void DMXProject::onConfirmButtonPressed()
-{
-	// Enregistrer la valeur actuelle et passer au champ suivant
-	int value = ui.verticalSlider->value();
-	if (currentFieldIndex < sliderValues.size()) {
-		sliderValues[currentFieldIndex] = value;
+			// Récupérer les noms et les numéros de canal des champs de l'équipement sélectionné
+			fetchEquipmentChampData(equipId);
+		}
+		else {
+			// Aucun équipement sélectionné, afficher un message d'erreur ou effectuer d'autres actions de suivi
+		}
 	}
 	else {
-		sliderValues.append(value);
+		// Aucune scène sélectionnée, afficher un message d'erreur ou effectuer d'autres actions de suivi
 	}
+}
 
-	currentFieldIndex++;
-	qDebug() << "Current field index:" << currentFieldIndex << "Slider values:" << sliderValues;
+void DMXProject::onValidateCanalButtonClicked() {
+	// Vérifier si il y a d'autres champs à traiter
+	if (m_currentChampIndex < m_champNumbers.count() - 1) {
+		// Passer au champ suivant
+		m_currentChampIndex++;
 
-	// Logique pour gérer l'affichage du champ suivant
+		// Afficher le nom du champ courant dans le QLabel
+		ui.valeurAfficheLabel->setText(m_champNames.at(m_currentChampIndex));
+	}
+	else {
+		// Tous les champs ont été traités, enregistrer les valeurs dans la table 'canaux'
+		QString sceneName = ui.SceneComboBox->currentText();
+
+		// Vérifier si une scène est sélectionnée
+		if (sceneName != -1) {
+			// Récupérer l'ID de la scène sélectionnée à partir de vos données de scène
+			int sceneId = scene->getSceneId(sceneName); 
+
+			// Récupérer l'ID de l'équipement sélectionné à partir de vos données d'équipement
+			QString equipName = ui.EquipComboBox->currentText();
+
+			int equipId = equipement->getEquipmentId(equipName); 
+
+			// Enregistrer les valeurs des champs dans la table 'canaux'
+			saveSceneEquipmentData(sceneId, equipId);
+		}
+		else {
+			// Aucune scène sélectionnée, afficher un message d'erreur ou effectuer d'autres actions de suivi
+		}
+	}
 }
