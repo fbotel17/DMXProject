@@ -37,7 +37,7 @@ void ConsoleMaterielle::onDataReceived()
         QString valueStr = substr.toString();
 
         int val = valueStr.toInt();
-        double dval = val / 1024.0 * 255.0;
+        double dval = val / 1024.0 * 256.0;
         val = static_cast<int>(dval);
 
         emit channelValueChanged(val);
@@ -57,6 +57,9 @@ void ConsoleMaterielle::onDataReceived()
     }
     else if (data.startsWith("CONFIRM")) { // Bouton de confirmation
         emit confirmButtonPressed();
+    }
+    else if (data.startsWith("VALIDATE")) { // Bouton de validation
+        emit validateButtonPressed();
     }
 }
 

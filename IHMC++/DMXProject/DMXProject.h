@@ -38,9 +38,10 @@ public:
 	void showEquipmentFields(int equipIndex);
 
 	void fetchEquipmentChampData(int equipId);
-	void saveSceneEquipmentData(int sceneId, int equipId);
+	void saveSceneEquipmentData(int sceneId);
 	void onValidSceneEquipButtonClicked();
 	void onValidateCanalButtonClicked();
+	void updateChampSliderValue(int value);
 
 	
 
@@ -63,6 +64,7 @@ public slots:
 	void saveSettings();
 	void handleNewEquipmentButtonClicked();
 	void onValidSceneEquipButtonClickedArduino();
+	void onValidateButtonPressed();
 
 
 private:
@@ -91,6 +93,8 @@ private:
 	QList<QString> m_champNames;
 	QList<int> m_champNumbers;
 	int m_currentChampIndex;
+	QList<int> m_champSliderValues;
+
 
 
 };

@@ -18,6 +18,7 @@ signals:
     void previousChannel();
     void nextChannel();
     void confirmButtonPressed();
+    void validateButtonPressed();
 
 private slots:
     void onDataReceived();

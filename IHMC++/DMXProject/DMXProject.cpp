@@ -61,6 +61,11 @@ DMXProject::DMXProject(QWidget* parent) : QMainWindow(parent) {
 	connect(ui.ValidSceneEquipButton, &QPushButton::clicked, this, &DMXProject::onValidSceneEquipButtonClicked);
 	connect(ui.ValidSceneEquipButton, &QPushButton::clicked, this, &DMXProject::onValidSceneEquipButtonClickedArduino);
 	connect(ui.validateCanalButton, &QPushButton::clicked, this, &DMXProject::onValidateCanalButtonClicked);
+	connect(ui.verticalSlider, &QSlider::valueChanged, this, &DMXProject::updateChampSliderValue);
+
+	connect(consoleMaterielle, &ConsoleMaterielle::confirmButtonPressed, this, &DMXProject::onValidateButtonPressed);
+
+
 
 
 
@@ -984,6 +989,13 @@ void DMXProject::fetchEquipmentChampData(int equipId) {
 	if (query.exec()) {
 		m_champNames.clear();
 		m_champNumbers.clear();
+		// Réinitialiser la liste m_champSliderValues avec la bonne taille et la remplir avec des zéros
+		m_champSliderValues.clear();
+		int champCount = query.size();
+		for (int i = 0; i < champCount; ++i) {
+			m_champSliderValues.append(0);
+		}
+
 		while (query.next()) {
 			m_champNames.append(query.value(0).toString());
 			m_champNumbers.append(query.value(1).toInt());
@@ -1000,30 +1012,58 @@ void DMXProject::fetchEquipmentChampData(int equipId) {
 	}
 }
 
-void DMXProject::saveSceneEquipmentData(int sceneId, int equipId) {
-	QSqlQuery query;
 
-	for (int i = 0; i < m_champNumbers.count(); ++i) {
-		int canalValue = ui.verticalSlider->value(); 
+void DMXProject::saveSceneEquipmentData(int idScene) {
+	// Vérifier si des canaux existent déjà pour cette scène
+	QSqlQuery checkCanauxQuery;
+	checkCanauxQuery.prepare("SELECT COUNT(*) FROM canaux WHERE idScene = :idScene");
+	checkCanauxQuery.bindValue(":idScene", idScene);
+	if (!checkCanauxQuery.exec() || !checkCanauxQuery.next()) {
+		qDebug() << "Erreur lors de l'exécution de la requête checkCanauxQuery:" << checkCanauxQuery.lastError().text();
+		return;
+	}
+	int countCanaux = checkCanauxQuery.value(0).toInt();
 
-		query.prepare("INSERT INTO canaux (numCanal, idScene, valeur) "
-			"VALUES (?, ?, ?)");
-		query.addBindValue(m_champNumbers.at(i));
-		query.addBindValue(sceneId);
-		query.addBindValue(canalValue);
-
-		if (!query.exec()) {
-			qDebug() << "Erreur lors de l'exécution de la requête : " << query.lastError();
+	// Si des canaux existent déjà, demander confirmation à l'utilisateur
+	if (countCanaux > 0) {
+		QMessageBox msgBox;
+		msgBox.setText("La scène sélectionnée possède déjà une configuration. Voulez-vous la supprimer ?");
+		msgBox.setStandardButtons(QMessageBox::Cancel | QMessageBox::Ok);
+		int ret = msgBox.exec();
+		if (ret == QMessageBox::Ok) {
+			// Supprimer les canaux existants
+			QSqlQuery deleteQuery;
+			deleteQuery.prepare("DELETE FROM canaux WHERE idScene = :idScene");
+			deleteQuery.bindValue(":idScene", idScene);
+			if (!deleteQuery.exec()) {
+				qDebug() << "Erreur lors de l'exécution de la requête deleteQuery:" << deleteQuery.lastError().text();
+				return;
+			}
+		}
+		else {
+			// Annuler l'opération
 			return;
 		}
 	}
 
-	// Réinitialiser les données et l'index du champ courant
-	m_champNames.clear();
-	m_champNumbers.clear();
-	m_currentChampIndex = 0;
+	// Enregistrer les nouvelles valeurs de canal pour la scène
+	QSqlQuery insertQuery;
+	insertQuery.prepare("INSERT INTO canaux (idScene, numCanal, valeur) VALUES (:idScene, :numCanal, :valeur)");
 
+	for (int i = 0; i < m_champNumbers.size(); ++i) {
+		insertQuery.bindValue(":idScene", idScene);
+		insertQuery.bindValue(":numCanal", m_champNumbers[i]);
+		insertQuery.bindValue(":valeur", m_champSliderValues[i]);
+
+		if (!insertQuery.exec()) {
+			qDebug() << "Erreur lors de l'exécution de la requête insertQuery:" << insertQuery.lastError().text();
+			return;
+		}
+	}
+
+	// Rediriger vers la page précédente après l'enregistrement réussi
 }
+
 
 void DMXProject::onValidSceneEquipButtonClickedArduino() {
 	// Récupérer l'index de la scène sélectionnée dans le QComboBox
@@ -1078,10 +1118,20 @@ void DMXProject::onValidateCanalButtonClicked() {
 			int equipId = equipement->getEquipmentId(equipName); 
 
 			// Enregistrer les valeurs des champs dans la table 'canaux'
-			saveSceneEquipmentData(sceneId, equipId);
+			saveSceneEquipmentData(sceneId);
 		}
 		else {
 			// Aucune scène sélectionnée, afficher un message d'erreur ou effectuer d'autres actions de suivi
 		}
 	}
+}
+
+void DMXProject::updateChampSliderValue(int value) {
+    if (m_currentChampIndex >= 0 && m_currentChampIndex < m_champSliderValues.count()) {
+        m_champSliderValues[m_currentChampIndex] = value;
+    }
+}
+
+void DMXProject::onValidateButtonPressed() {
+	onValidateCanalButtonClicked();
 }

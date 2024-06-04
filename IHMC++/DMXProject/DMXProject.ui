@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1271</width>
+    <width>1434</width>
     <height>792</height>
    </rect>
   </property>
@@ -581,7 +581,7 @@
          <item>
           <widget class="QSlider" name="verticalSlider">
            <property name="maximum">
-            <number>255</number>
+            <number>256</number>
            </property>
            <property name="orientation">
             <enum>Qt::Vertical</enum>
@@ -600,7 +600,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1271</width>
+     <width>1434</width>
      <height>25</height>
     </rect>
    </property>
