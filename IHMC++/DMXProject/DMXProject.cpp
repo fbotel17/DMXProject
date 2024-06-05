@@ -83,7 +83,7 @@ DMXProject::DMXProject(QWidget* parent) : QMainWindow(parent) {
 	Gerer_un_equipement();
 	fillSceneComboBox2();
 	fillEquipComboBox();
-
+	gererScenes(); 
 	connect(ui.testSceneButton, &QPushButton::clicked, this, &DMXProject::testScene);
 
 	// Envoyer les noms des scènes à l'Arduino
@@ -195,6 +195,7 @@ void DMXProject::on_actionArduino_triggered()
 
 void DMXProject::on_actionGerer_une_scene_triggered()
 {
+	gererScenes();
 	ui.stackedWidget->setCurrentIndex(9);
 }
 
@@ -1140,3 +1141,179 @@ void DMXProject::updateChampSliderValue(int value) {
 void DMXProject::onValidateButtonPressed() {
 	onValidateCanalButtonClicked();
 }
+
+void DMXProject::gererScenes()
+{
+	QLayoutItem* child;
+
+	// Supprimer tous les widgets existants dans le layout
+	while ((child = ui.verticalLayout_7->takeAt(0)) != nullptr)
+	{
+		delete child->widget();
+		delete child;
+	}
+
+	// Créer un QLabel avec du texte en grand au milieu
+	QLabel* gererSceneLabel = new QLabel("Gerer les scenes");
+	gererSceneLabel->setAlignment(Qt::AlignCenter);
+	QFont font = gererSceneLabel->font();
+	font.setPointSize(24); // Définir la taille de la police
+	gererSceneLabel->setFont(font);
+
+	// Utiliser un QHBoxLayout pour centrer le QLabel horizontalement
+	QHBoxLayout* labelLayout = new QHBoxLayout;
+	labelLayout->addWidget(gererSceneLabel);
+	ui.verticalLayout_7->addLayout(labelLayout);
+
+	// Créer un nouveau QTableView
+	QTableView* tableView = new QTableView;
+
+	tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	tableView->setSelectionMode(QAbstractItemView::NoSelection);
+	tableView->setSelectionBehavior(QAbstractItemView::SelectItems);
+
+	// Créer un modèle de tableau vide avec trois colonnes
+	QStandardItemModel* model = new QStandardItemModel(0, 3);
+	tableView->setModel(model);
+
+	// Définir les en-têtes de colonne
+	model->setHorizontalHeaderLabels(QStringList() << "Nom de la scene" << "Modifier" << "Supprimer");
+
+	// Exécuter une requête pour récupérer tous les noms de scènes existantes
+	QSqlQuery query("SELECT nom FROM scene");
+
+	int row = 0; // Variable pour garder une trace du numéro de ligne
+
+	// Parcourir les résultats de la requête et ajouter chaque nom de scène en tant que ligne dans le modèle de tableau
+	while (query.next()) {
+		QString nomScene = query.value(0).toString();
+
+		// Colonne "Nom de la scène"
+		QStandardItem* itemName = new QStandardItem(nomScene);
+		model->setItem(row, 0, itemName);
+
+		// Colonne "Modifier"
+		QPushButton* modifyButton = new QPushButton("Modifier");
+		QObject::connect(modifyButton, &QPushButton::clicked, this, [this, nomScene]() {
+			handleModifySceneButtonClicked(nomScene);
+			});
+		tableView->setIndexWidget(model->index(row, 1), modifyButton);
+
+		// Colonne "Supprimer"
+		QPushButton* deleteButton = new QPushButton("Supprimer");
+		deleteButton->setObjectName(nomScene); // Utiliser le nom de la scène comme nom d'objet
+		QObject::connect(deleteButton, &QPushButton::clicked, this, &DMXProject::handleDeleteSceneButtonClicked);
+		tableView->setIndexWidget(model->index(row, 2), deleteButton);
+
+		++row; // Incrémenter le numéro de ligne
+	}
+
+	// Redimensionner les colonnes pour qu'elles s'adaptent au contenu
+	tableView->resizeColumnsToContents();
+
+	// Définir les politiques de taille pour le tableau et le widget parent
+	tableView->horizontalHeader()->setStretchLastSection(true);
+	tableView->verticalHeader()->setStretchLastSection(true);
+	tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+	tableView->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+
+	// Ajouter le QTableView au layout verticalLayout_7 en prenant tout l'espace disponible
+	ui.verticalLayout_7->addWidget(tableView);
+}
+
+void DMXProject::handleDeleteSceneButtonClicked() {
+	// Vérifier si l'émetteur du signal est bien un QPushButton
+	QPushButton* button = qobject_cast<QPushButton*>(sender());
+	if (!button) {
+		qDebug() << "Erreur: emetteur du signal n'est pas un QPushButton.";
+		return;
+	}
+
+	// Récupérer le nom de la scène à partir de l'objet QPushButton
+	QString nomScene = button->objectName(); // Utiliser le nom de la scène comme ID
+
+	// Effectuer la suppression des dépendances dans la table canaux
+	QSqlQuery queryCanaux;
+	queryCanaux.prepare("DELETE FROM canaux WHERE idScene IN (SELECT id FROM scene WHERE nom = :nomScene)");
+	queryCanaux.bindValue(":nomScene", nomScene);
+	if (!queryCanaux.exec()) {
+		qDebug() << "Erreur lors de la suppression des dependances dans la table canaux:" << queryCanaux.lastError().text();
+		return;
+	}
+
+	// Effectuer la suppression des dépendances dans la table lightBoard
+	QSqlQuery queryLightBoard;
+	queryLightBoard.prepare("DELETE FROM lightBoard WHERE idScene IN (SELECT id FROM scene WHERE nom = :nomScene)");
+	queryLightBoard.bindValue(":nomScene", nomScene);
+	if (!queryLightBoard.exec()) {
+		qDebug() << "Erreur lors de la suppression des dependances dans la table lightBoard:" << queryLightBoard.lastError().text();
+		return;
+	}
+
+	// Effectuer la suppression de la scène dans la table scene
+	QSqlQuery queryScene;
+	queryScene.prepare("DELETE FROM scene WHERE nom = :nomScene");
+	queryScene.bindValue(":nomScene", nomScene);
+	if (!queryScene.exec()) {
+		qDebug() << "Erreur lors de la suppression de la scene dans la table scene:" << queryScene.lastError().text();
+		return;
+	}
+
+	// Rafraîchir l'affichage des scènes après la suppression
+	gererScenes();
+
+	// Afficher le nom de la scène supprimée dans le QDebug
+	qDebug() << "Scene supprimee avec succes. Nom de la scene supprimee:" << nomScene;
+}
+
+void DMXProject::handleModifySceneButtonClicked(const QString& nomScene) {
+	// Créer une boîte de dialogue de modification de la scène
+	QDialog* modifySceneDialog = new QDialog(this);
+	modifySceneDialog->setWindowTitle("Modifier la scene");
+
+	// Créer un layout vertical pour la boîte de dialogue
+	QVBoxLayout* dialogLayout = new QVBoxLayout(modifySceneDialog);
+
+	// Ajouter un QLabel pour afficher le texte d'instruction
+	QLabel* instructionLabel = new QLabel("Entrez le nouveau nom de la scene:");
+	dialogLayout->addWidget(instructionLabel);
+
+	// Ajouter un QLineEdit pour permettre à l'utilisateur de saisir le nouveau nom de la scène
+	QLineEdit* sceneNameLineEdit = new QLineEdit(nomScene);
+	dialogLayout->addWidget(sceneNameLineEdit);
+
+	// Ajouter les boutons "Annuler" et "Modifier"
+	QDialogButtonBox* buttonBox = new QDialogButtonBox(QDialogButtonBox::Cancel | QDialogButtonBox::Ok);
+	dialogLayout->addWidget(buttonBox);
+
+	// Connecter le bouton "Annuler" pour fermer la boîte de dialogue sans effectuer de modifications
+	connect(buttonBox, &QDialogButtonBox::rejected, modifySceneDialog, &QDialog::reject);
+
+	// Connecter le bouton "Modifier" pour effectuer les modifications et fermer la boîte de dialogue
+	connect(buttonBox, &QDialogButtonBox::accepted, [=]() {
+		QString newSceneName = sceneNameLineEdit->text();
+		// Effectuer la requête SQL pour mettre à jour le nom de la scène dans la base de données
+		QSqlQuery query;
+		query.prepare("UPDATE scene SET nom = :newSceneName WHERE nom = :oldSceneName");
+		query.bindValue(":newSceneName", newSceneName);
+		query.bindValue(":oldSceneName", nomScene);
+		if (!query.exec()) {
+			qDebug() << "Erreur lors de la mise a jour du nom de la scene:" << query.lastError().text();
+			return;
+		}
+
+		// Afficher un message de confirmation
+		QMessageBox::information(this, "Modification reussie", "Le nom de la scene a ete modifie avec succes en : " + newSceneName + "\n Attention la scene a pu remonte dans le tableau");
+
+		// Rafraîchir l'affichage des scènes après la modification
+		gererScenes();
+
+		// Fermer la boîte de dialogue
+		modifySceneDialog->accept();
+		});
+
+	// Afficher la boîte de dialogue de modification de la scène
+	modifySceneDialog->exec();
+}
+
+

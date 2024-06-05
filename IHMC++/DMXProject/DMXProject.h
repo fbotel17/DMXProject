@@ -42,7 +42,7 @@ public:
 	void onValidSceneEquipButtonClicked();
 	void onValidateCanalButtonClicked();
 	void updateChampSliderValue(int value);
-
+	void gererScenes();
 	
 
 
@@ -66,6 +66,9 @@ public slots:
 	void handleNewEquipmentButtonClicked();
 	void onValidSceneEquipButtonClickedArduino();
 	void onValidateButtonPressed();
+
+	void handleDeleteSceneButtonClicked();
+	void handleModifySceneButtonClicked(const QString& nomScene);
 
 
 private:

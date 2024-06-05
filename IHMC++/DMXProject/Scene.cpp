@@ -1,16 +1,10 @@
-#include "Scene.h"
+#include "scene.h"
+#include <QSqlError>
+#include <QDebug>
 
-Scene::Scene()
-{
-    id = 0;
-    nom = "";
-}
+Scene::Scene() : id(0), nom("") {}
 
-Scene::Scene(int id, const QString& nom)
-{
-    this->id = id;
-    this->nom = nom;
-}
+Scene::Scene(int id, const QString& nom) : id(id), nom(nom) {}
 
 int Scene::getId() const
 {
@@ -31,8 +25,6 @@ void Scene::setNom(const QString& nom)
 {
     this->nom = nom;
 }
-
-
 
 void Scene::insertScene(const QString& nomScene)
 {
@@ -82,15 +74,12 @@ QList<Scene> Scene::getAllScenes()
 
 void Scene::afficherScenes(QListWidget* listWidget)
 {
-    // Exécuter une requête pour récupérer toutes les scènes existantes
     QSqlQuery query("SELECT * FROM scene");
 
-    // Parcourir les résultats de la requête et ajouter chaque scène à la liste
     while (query.next()) {
         int id = query.value(0).toInt();
         QString nom = query.value(1).toString();
 
-        // Créer un nouvel élément pour chaque scène et l'ajouter à la liste
         QListWidgetItem* item = new QListWidgetItem(nom);
         listWidget->addItem(item);
     }
@@ -102,15 +91,11 @@ int Scene::getSceneId(const QString& sceneName)
     query.prepare("SELECT id FROM scene WHERE nom = :nom");
     query.bindValue(":nom", sceneName);
 
-    if (query.exec() && query.next())
-    {
+    if (query.exec() && query.next()) {
         return query.value(0).toInt();
     }
-    else
-    {
+    else {
         qDebug() << "Erreur lors de la récupération de l'ID de la scène : " << query.lastError().text();
         return -1;
     }
 }
-
-

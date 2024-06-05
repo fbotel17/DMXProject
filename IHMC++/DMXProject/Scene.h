@@ -23,8 +23,6 @@
 class Scene
 {
 public:
-    
-
     Scene();
     Scene(int id, const QString& nom);
 
@@ -39,6 +37,7 @@ public:
     QList<Scene> getAllScenes();
     void afficherScenes(QListWidget* listWidget);
     int getSceneId(const QString& sceneName);
+
 
 private:
     int id;
