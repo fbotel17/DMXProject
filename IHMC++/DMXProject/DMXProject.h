@@ -68,8 +68,8 @@ public slots:
 	void onValidateButtonPressed();
 
 	void handleDeleteSceneButtonClicked();
-	void handleModifySceneButtonClicked(const QString& nomScene);
-
+	void handleModifySceneButtonClicked(const QString& nomScene); 
+	void ajouterScene();
 
 private:
 	Ui::DMXProjectClass ui;

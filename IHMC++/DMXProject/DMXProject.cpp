@@ -1142,13 +1142,10 @@ void DMXProject::onValidateButtonPressed() {
 	onValidateCanalButtonClicked();
 }
 
-void DMXProject::gererScenes()
-{
-	QLayoutItem* child;
-
+void DMXProject::gererScenes() {
 	// Supprimer tous les widgets existants dans le layout
-	while ((child = ui.verticalLayout_7->takeAt(0)) != nullptr)
-	{
+	QLayoutItem* child;
+	while ((child = ui.verticalLayout_7->takeAt(0)) != nullptr) {
 		delete child->widget();
 		delete child;
 	}
@@ -1164,6 +1161,18 @@ void DMXProject::gererScenes()
 	QHBoxLayout* labelLayout = new QHBoxLayout;
 	labelLayout->addWidget(gererSceneLabel);
 	ui.verticalLayout_7->addLayout(labelLayout);
+
+	// Créer un bouton pour ajouter une nouvelle scène
+	QPushButton* addSceneButton = new QPushButton("Ajouter une scene");
+	addSceneButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed); // Définir une taille fixe pour le bouton
+	addSceneButton->setMaximumHeight(80); // Définir la hauteur maximale du bouton
+	connect(addSceneButton, &QPushButton::clicked, this, &DMXProject::ajouterScene);
+
+	// Créer un layout horizontal pour le bouton "Ajouter une scène"
+	QHBoxLayout* addButtonLayout = new QHBoxLayout;
+	addButtonLayout->addWidget(addSceneButton);
+	addButtonLayout->addStretch(); // Ajouter un espace flexible à droite du bouton
+	ui.verticalLayout_7->addLayout(addButtonLayout);
 
 	// Créer un nouveau QTableView
 	QTableView* tableView = new QTableView;
@@ -1221,6 +1230,9 @@ void DMXProject::gererScenes()
 	ui.verticalLayout_7->addWidget(tableView);
 }
 
+
+
+
 void DMXProject::handleDeleteSceneButtonClicked() {
 	// Vérifier si l'émetteur du signal est bien un QPushButton
 	QPushButton* button = qobject_cast<QPushButton*>(sender());
@@ -1258,6 +1270,10 @@ void DMXProject::handleDeleteSceneButtonClicked() {
 		qDebug() << "Erreur lors de la suppression de la scene dans la table scene:" << queryScene.lastError().text();
 		return;
 	}
+	// Créer un bouton pour ajouter une nouvelle scène
+	QPushButton* addSceneButton = new QPushButton("Ajouter une scène");
+	connect(addSceneButton, &QPushButton::clicked, this, &DMXProject::ajouterScene);
+	ui.verticalLayout_7->addWidget(addSceneButton);
 
 	// Rafraîchir l'affichage des scènes après la suppression
 	gererScenes();
@@ -1316,4 +1332,51 @@ void DMXProject::handleModifySceneButtonClicked(const QString& nomScene) {
 	modifySceneDialog->exec();
 }
 
+void DMXProject::ajouterScene() {
+	// Créer une boîte de dialogue pour ajouter une nouvelle scène
+	QDialog* addSceneDialog = new QDialog(this);
+	addSceneDialog->setWindowTitle("Ajouter une nouvelle scène");
 
+	// Créer un layout vertical pour la boîte de dialogue
+	QVBoxLayout* dialogLayout = new QVBoxLayout(addSceneDialog);
+
+	// Ajouter un QLabel pour afficher le texte d'instruction
+	QLabel* instructionLabel = new QLabel("Entrez le nom de la nouvelle scène:");
+	dialogLayout->addWidget(instructionLabel);
+
+	// Ajouter un QLineEdit pour permettre à l'utilisateur de saisir le nom de la nouvelle scène
+	QLineEdit* sceneNameLineEdit = new QLineEdit();
+	dialogLayout->addWidget(sceneNameLineEdit);
+
+	// Ajouter les boutons "Annuler" et "Ajouter"
+	QDialogButtonBox* buttonBox = new QDialogButtonBox(QDialogButtonBox::Cancel | QDialogButtonBox::Ok);
+	dialogLayout->addWidget(buttonBox);
+
+	// Connecter le bouton "Annuler" pour fermer la boîte de dialogue sans ajouter de nouvelle scène
+	connect(buttonBox, &QDialogButtonBox::rejected, addSceneDialog, &QDialog::reject);
+
+	// Connecter le bouton "Ajouter" pour ajouter la nouvelle scène à la base de données et fermer la boîte de dialogue
+	connect(buttonBox, &QDialogButtonBox::accepted, [=]() {
+		QString newSceneName = sceneNameLineEdit->text();
+		// Effectuer la requête SQL pour ajouter une nouvelle scène dans la base de données
+		QSqlQuery query;
+		query.prepare("INSERT INTO scene (nom) VALUES (:newSceneName)");
+		query.bindValue(":newSceneName", newSceneName);
+		if (!query.exec()) {
+			qDebug() << "Erreur lors de l'ajout de la nouvelle scène:" << query.lastError().text();
+			return;
+		}
+
+		// Afficher un message de confirmation
+		QMessageBox::information(this, "Scène ajoutée", "La nouvelle scène a été ajoutée avec succès : " + newSceneName);
+
+		// Rafraîchir l'affichage des scènes après l'ajout
+		gererScenes();
+
+		// Fermer la boîte de dialogue
+		addSceneDialog->accept();
+		});
+
+	// Afficher la boîte de dialogue pour ajouter une nouvelle scène
+	addSceneDialog->exec();
+}
