@@ -18,7 +18,7 @@
     <item>
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="currentIndex">
-       <number>8</number>
+       <number>7</number>
       </property>
       <widget class="QWidget" name="page_3">
        <widget class="QWidget" name="formLayoutWidget">
@@ -558,7 +558,7 @@
        <widget class="QPushButton" name="ValidSceneEquipButton">
         <property name="geometry">
          <rect>
-          <x>1100</x>
+          <x>960</x>
           <y>40</y>
           <width>93</width>
           <height>28</height>
@@ -619,19 +619,6 @@
          </item>
         </layout>
        </widget>
-       <widget class="QCheckBox" name="checkBoxEquip">
-        <property name="geometry">
-         <rect>
-          <x>900</x>
-          <y>50</y>
-          <width>161</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>CheckBox</string>
-        </property>
-       </widget>
       </widget>
       <widget class="QWidget" name="page_10">
        <widget class="QWidget" name="verticalLayoutWidget_3">
@@ -656,7 +643,7 @@
      <x>0</x>
      <y>0</y>
      <width>1432</width>
-     <height>25</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuChoisir">

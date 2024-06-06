@@ -1209,11 +1209,8 @@ void DMXProject::gererScenes() {
 	addSceneButton->setMaximumHeight(80); // Définir la hauteur maximale du bouton
 	connect(addSceneButton, &QPushButton::clicked, this, &DMXProject::ajouterScene);
 
-	// Créer un layout horizontal pour le bouton "Ajouter une scène"
-	QHBoxLayout* addButtonLayout = new QHBoxLayout;
-	addButtonLayout->addWidget(addSceneButton);
-	addButtonLayout->addStretch(); // Ajouter un espace flexible à droite du bouton
-	ui.verticalLayout_7->addLayout(addButtonLayout);
+	// Ajouter le bouton "Ajouter une scène" directement au layout vertical
+	ui.verticalLayout_7->addWidget(addSceneButton);
 
 	// Créer un nouveau QTableView
 	QTableView* tableView = new QTableView;
@@ -1270,9 +1267,6 @@ void DMXProject::gererScenes() {
 	// Ajouter le QTableView au layout verticalLayout_7 en prenant tout l'espace disponible
 	ui.verticalLayout_7->addWidget(tableView);
 }
-
-
-
 
 void DMXProject::handleDeleteSceneButtonClicked() {
 	// Vérifier si l'émetteur du signal est bien un QPushButton
@@ -1453,19 +1447,6 @@ void DMXProject::selectNextScene() {
 	sceneName.append("\n");  // Ajoutez un retour à la ligne pour indiquer la fin de la transmission
 	consoleMaterielle->sendData(sceneName);  // Utilisez une méthode de ConsoleMaterielle pour envoyer les données
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 void DMXProject::confirmSelection()
