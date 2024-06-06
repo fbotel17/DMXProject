@@ -65,8 +65,15 @@ DMXProject::DMXProject(QWidget* parent) : QMainWindow(parent) {
 
 	connect(consoleMaterielle, &ConsoleMaterielle::confirmButtonPressed, this, &DMXProject::onValidateButtonPressed);
 
+	connect(ui.verticalSlider, &QSlider::valueChanged, this, &DMXProject::onSliderValueChanged);
+
+	connect(consoleMaterielle, &ConsoleMaterielle::previousChannel, this, &DMXProject::selectPreviousScene);
+	connect(consoleMaterielle, &ConsoleMaterielle::nextChannel, this, &DMXProject::selectNextScene);
+	connect(consoleMaterielle, &ConsoleMaterielle::validateButtonPressed, this, &DMXProject::validateSelection);
 
 
+	// Initialiser l'affichage du label avec la valeur actuelle du slider
+	onSliderValueChanged(ui.verticalSlider->value());
 
 
 	// Afficher toutes les scènes existantes
@@ -1379,4 +1386,39 @@ void DMXProject::ajouterScene() {
 
 	// Afficher la boîte de dialogue pour ajouter une nouvelle scène
 	addSceneDialog->exec();
+}
+
+void DMXProject::onSliderValueChanged(int value)
+{
+	// Mettre à jour le texte du label avec la valeur du slider
+	ui.valeurSlider->setText(QString::number(value));
+}
+
+void DMXProject::selectPreviousScene()
+{
+	int currentIndex = ui.sceneComboBox->currentIndex();
+	if (currentIndex > 0) {
+		ui.sceneComboBox->setCurrentIndex(currentIndex - 1);
+	}
+}
+
+void DMXProject::selectNextScene()
+{
+	int currentIndex = ui.sceneComboBox->currentIndex();
+	if (currentIndex < ui.sceneComboBox->count() - 1) {
+		ui.sceneComboBox->setCurrentIndex(currentIndex + 1);
+	}
+}
+
+void DMXProject::confirmSelection()
+{
+	// Action à définir pour la confirmation de sélection
+	qDebug() << "Scene confirmed:" << ui.sceneComboBox->currentText();
+}
+
+void DMXProject::validateSelection()
+{
+	ui.testSceneButton->click();
+	// Action à définir pour la validation de sélection
+	qDebug() << "Scene validated:" << ui.sceneComboBox->currentText();
 }

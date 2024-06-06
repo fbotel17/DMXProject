@@ -31,6 +31,10 @@ void ConsoleMaterielle::onDataReceived()
 
     QByteArray data = port->readLine();
 
+    if (data.startsWith("VALIDATE")) { // Bouton de validation
+        emit validateButtonPressed();
+    }
+
     if (data.startsWith("V")) { // Valeur potentiomètre
         QString str = QString::fromUtf8(data);
         QStringRef substr(&str, 1, str.length() - 1);
@@ -58,9 +62,7 @@ void ConsoleMaterielle::onDataReceived()
     else if (data.startsWith("CONFIRM")) { // Bouton de confirmation
         emit confirmButtonPressed();
     }
-    else if (data.startsWith("VALIDATE")) { // Bouton de validation
-        emit validateButtonPressed();
-    }
+
 }
 
 

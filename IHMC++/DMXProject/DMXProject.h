@@ -43,6 +43,12 @@ public:
 	void onValidateCanalButtonClicked();
 	void updateChampSliderValue(int value);
 	void gererScenes();
+	void ajouterScene();
+
+	void selectPreviousScene();
+	void selectNextScene();
+	void confirmSelection();
+	void validateSelection();
 	
 
 
@@ -69,7 +75,8 @@ public slots:
 
 	void handleDeleteSceneButtonClicked();
 	void handleModifySceneButtonClicked(const QString& nomScene); 
-	void ajouterScene();
+	
+	void onSliderValueChanged(int value);
 
 private:
 	Ui::DMXProjectClass ui;

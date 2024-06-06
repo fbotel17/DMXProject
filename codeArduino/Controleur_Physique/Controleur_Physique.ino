@@ -7,25 +7,33 @@
 #define OLED_RESET -1
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-const int buttonPin = A3;
-int buttonState = 0;
-int lastButtonState = 0; // Nouvelle variable pour l'état précédent du bouton
-unsigned long lastButtonDebounceTime = 0; // Nouvelle variable pour stocker le temps du dernier rebond
-unsigned long buttonDebounceDelay = 50; // Délai de rebond en millisecondes
+const int confirmButtonPin = A3;
+const int validateButtonPin = 8; // Nouveau bouton sur le port digital D2
+int confirmButtonState = 0;
+int lastConfirmButtonState = 0;
+unsigned long lastConfirmButtonDebounceTime = 0;
+unsigned long confirmButtonDebounceDelay = 50;
+
+int validateButtonState = 0;
+int lastValidateButtonState = 0;
+unsigned long lastValidateButtonDebounceTime = 0;
+unsigned long validateButtonDebounceDelay = 50;
+
+unsigned long lastJoystickMoveTime = 0;
+const unsigned long joystickMoveDelay = 200; // Délai de 200 ms pour le joystick
 
 void setup() {
   Serial.begin(9600);
   while (!Serial);
 
-  pinMode(buttonPin, INPUT);
+  pinMode(confirmButtonPin, INPUT);
+  pinMode(validateButtonPin, INPUT); // Configurer le nouveau bouton en entrée
 
-  // Initialisation de l'écran OLED
-  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Adresse I2C 0x3C
+  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
     Serial.println(F("SSD1306 allocation failed"));
-    for (;;); // Boucle infinie si l'écran ne s'initialise pas
+    for (;;);
   }
 
-  // Efface l'écran
   display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(SSD1306_WHITE);
@@ -35,45 +43,63 @@ void setup() {
 }
 
 void loop() {
-  // Lire la valeur du potentiomètre
   int val = analogRead(A2);
   String str = "V";
   str += val;
   Serial.println(str);
 
-  // Lire les valeurs du joystick
   int joystickX = analogRead(A0);
   int joystickY = analogRead(A1);
 
-  // Détecter le mouvement du joystick vers la gauche ou la droite
-  if (joystickX < 300) { // Si la valeur est inférieure à un seuil, mouvement vers la gauche
-    Serial.println("JLEFT");
-  } else if (joystickX > 700) { // Si la valeur est supérieure à un seuil, mouvement vers la droite
-    Serial.println("JRIGHT");
+  unsigned long currentMillis = millis();
+  if (currentMillis - lastJoystickMoveTime >= joystickMoveDelay) {
+    if (joystickX < 300) {
+      Serial.println("JLEFT");
+      lastJoystickMoveTime = currentMillis;
+    } else if (joystickX > 700) {
+      Serial.println("JRIGHT");
+      lastJoystickMoveTime = currentMillis;
+    }
   }
 
-  // Lire l'état du bouton avec hystérésis et délai de rebond
-  unsigned long currentMillis = millis();
-  if (currentMillis - lastButtonDebounceTime >= buttonDebounceDelay) {
-    int reading = digitalRead(buttonPin);
-    if (reading != lastButtonState) {
-      lastButtonDebounceTime = currentMillis;
-      if (reading == HIGH && lastButtonState == LOW) {
-        buttonState = HIGH;
+  // Lire l'état du bouton de confirmation avec hystérésis et délai de rebond
+  if (currentMillis - lastConfirmButtonDebounceTime >= confirmButtonDebounceDelay) {
+    int reading = digitalRead(confirmButtonPin);
+    if (reading != lastConfirmButtonState) {
+      lastConfirmButtonDebounceTime = currentMillis;
+      if (reading == HIGH && lastConfirmButtonState == LOW) {
+        confirmButtonState = HIGH;
       } else {
-        buttonState = LOW;
+        confirmButtonState = LOW;
       }
     }
-    lastButtonState = reading;
+    lastConfirmButtonState = reading;
   }
 
-  // Si le bouton est pressé, envoyer "CONFIRM" à l'interface utilisateur
-  if (buttonState == HIGH) {
+  if (confirmButtonState == HIGH) {
     Serial.println("CONFIRM");
-    buttonState = LOW; // Réinitialiser l'état du bouton après l'envoi
+    confirmButtonState = LOW;
   }
 
-  // Lire les messages série et mettre à jour l'écran OLED
+  // Lire l'état du bouton de validation avec hystérésis et délai de rebond
+  if (currentMillis - lastValidateButtonDebounceTime >= validateButtonDebounceDelay) {
+    int reading = digitalRead(validateButtonPin);
+    if (reading != lastValidateButtonState) {
+      lastValidateButtonDebounceTime = currentMillis;
+      if (reading == HIGH && lastValidateButtonState == LOW) {
+        validateButtonState = HIGH;
+      } else {
+        validateButtonState = LOW;
+      }
+    }
+    lastValidateButtonState = reading;
+  }
+
+  if (validateButtonState == HIGH) {
+    Serial.println("VALIDATE");
+    validateButtonState = LOW;
+}
+
   if (Serial.available()) {
     String message = Serial.readStringUntil('\n');
     displayMessage(message);
@@ -82,17 +108,15 @@ void loop() {
   delay(20);
 }
 
-
 void displayMessage(String message) {
   display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(SSD1306_WHITE);
   display.setCursor(0, 0);
 
-  int lineHeight = 10; // Hauteur de chaque ligne
-  int yPos = 0; // Position Y initiale
+  int lineHeight = 10;
+  int yPos = 0;
 
-  // Séparer les messages par ligne
   int separatorIndex;
   while ((separatorIndex = message.indexOf('\n')) != -1) {
     String line = message.substring(0, separatorIndex);
@@ -101,7 +125,7 @@ void displayMessage(String message) {
     yPos += lineHeight;
     message = message.substring(separatorIndex + 1);
   }
-  // Afficher la dernière ligne
+
   display.setCursor(0, yPos);
   display.print(message);
 
