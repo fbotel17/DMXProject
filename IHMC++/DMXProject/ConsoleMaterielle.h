@@ -12,6 +12,7 @@ class ConsoleMaterielle : public QObject
 public:
     ConsoleMaterielle(QSlider* slider, QObject* parent = nullptr);
     ~ConsoleMaterielle();
+    void sendData(const QByteArray& data);
 
 signals:
     void channelValueChanged(int value);
@@ -19,6 +20,7 @@ signals:
     void nextChannel();
     void confirmButtonPressed();
     void validateButtonPressed();
+
 
 private slots:
     void onDataReceived();

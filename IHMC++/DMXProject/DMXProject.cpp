@@ -1394,21 +1394,32 @@ void DMXProject::onSliderValueChanged(int value)
 	ui.valeurSlider->setText(QString::number(value));
 }
 
-void DMXProject::selectPreviousScene()
-{
+void DMXProject::selectPreviousScene() {
 	int currentIndex = ui.sceneComboBox->currentIndex();
 	if (currentIndex > 0) {
 		ui.sceneComboBox->setCurrentIndex(currentIndex - 1);
 	}
+
+	// Envoyer le nom de la scène sélectionnée à l'Arduino
+	QString textCombobox = ui.sceneComboBox->currentText();
+	QByteArray sceneName = textCombobox.toUtf8();
+	sceneName.append("\n");  // Ajoutez un retour à la ligne pour indiquer la fin de la transmission
+	consoleMaterielle->sendData(sceneName);  // Utilisez une méthode de ConsoleMaterielle pour envoyer les données
 }
 
-void DMXProject::selectNextScene()
-{
+void DMXProject::selectNextScene() {
 	int currentIndex = ui.sceneComboBox->currentIndex();
 	if (currentIndex < ui.sceneComboBox->count() - 1) {
 		ui.sceneComboBox->setCurrentIndex(currentIndex + 1);
 	}
+
+	// Envoyer le nom de la scène sélectionnée à l'Arduino
+	QString textCombobox = ui.sceneComboBox->currentText();
+	QByteArray sceneName = textCombobox.toUtf8();
+	sceneName.append("\n");  // Ajoutez un retour à la ligne pour indiquer la fin de la transmission
+	consoleMaterielle->sendData(sceneName);  // Utilisez une méthode de ConsoleMaterielle pour envoyer les données
 }
+
 
 void DMXProject::confirmSelection()
 {

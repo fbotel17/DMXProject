@@ -65,4 +65,9 @@ void ConsoleMaterielle::onDataReceived()
 
 }
 
+void ConsoleMaterielle::sendData(const QByteArray& data) {
+    if (port->isOpen()) {
+        port->write(data);
+    }
+}
 
