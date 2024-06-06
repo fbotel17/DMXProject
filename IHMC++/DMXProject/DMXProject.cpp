@@ -960,7 +960,12 @@ void DMXProject::fillSceneComboBox2() {
 	foreach(const Scene & s, scenes) {
 		ui.SceneComboBox->addItem(s.getNom());
 	}
+
+	// Envoyer un message à l'Arduino
+	QString message = "Scenes loaded\n";
+	consoleMaterielle->sendData(message.toUtf8());
 }
+
 
 
 void DMXProject::fillEquipComboBox() {
@@ -969,26 +974,42 @@ void DMXProject::fillEquipComboBox() {
 	foreach(const Equipement & e, equips) {
 		ui.EquipComboBox->addItem(e.getNom());
 	}
+
+	// Envoyer un message à l'Arduino
+	QString message = "Equipments loaded\n";
+	consoleMaterielle->sendData(message.toUtf8());
 }
 
 
-void DMXProject::onValidSceneEquipButtonClicked() {
-	// Récupérer l'index de la scène sélectionnée dans le QComboBox
-	int index = ui.SceneComboBox->currentIndex();
 
-	// Vérifier si une scène est sélectionnée
-	if (index != -1) {
-		// Récupérer le nom de la scène sélectionnée
+void DMXProject::onValidSceneEquipButtonClickedArduino() {
+	int sceneIndex = ui.SceneComboBox->currentIndex();
+	if (sceneIndex != -1) {
 		QString sceneName = ui.SceneComboBox->currentText();
+		int equipIndex = ui.EquipComboBox->currentIndex();
 
-		// Afficher le nom de la scène dans le QLabel
-		ui.nomSceneAfficheLabel->setText(sceneName);
+		if (equipIndex != -1) {
+			QString equipName = ui.EquipComboBox->currentText();
+			int equipId = equipement->getEquipmentId(equipName);
+			fetchEquipmentChampData(equipId);
+
+			// Envoyer les données de la scène et de l'équipement à l'Arduino
+			QByteArray data = "Scene: " + sceneName.toUtf8() + "\n";
+			data += "Equip: " + equipName.toUtf8() + "\n";
+			consoleMaterielle->sendData(data);
+		}
+		else {
+			QByteArray data = "Scene: " + sceneName.toUtf8() + "\n";
+			data += "No equipment selected\n";
+			consoleMaterielle->sendData(data);
+		}
 	}
 	else {
-		// Aucune scène sélectionnée, afficher un message d'erreur ou laisser le QLabel vide
-		ui.nomSceneAfficheLabel->setText("");
+		consoleMaterielle->sendData("No scene selected\n");
 	}
 }
+
+
 
 void DMXProject::fetchEquipmentChampData(int equipId) {
 	QSqlQuery query;
@@ -1002,7 +1023,6 @@ void DMXProject::fetchEquipmentChampData(int equipId) {
 	if (query.exec()) {
 		m_champNames.clear();
 		m_champNumbers.clear();
-		// Réinitialiser la liste m_champSliderValues avec la bonne taille et la remplir avec des zéros
 		m_champSliderValues.clear();
 		int champCount = query.size();
 		for (int i = 0; i < champCount; ++i) {
@@ -1015,15 +1035,28 @@ void DMXProject::fetchEquipmentChampData(int equipId) {
 		}
 		m_currentChampIndex = 0;
 
-		// Afficher le nom du premier champ dans le QLabel
-		if (!m_champNames.isEmpty()) {
-			ui.valeurAfficheLabel->setText(m_champNames.at(m_currentChampIndex));
-		}
+		// Envoyer les données de la scène et de l'équipement à l'Arduino
+		QString sceneName = ui.SceneComboBox->currentText();
+		QString equipName = ui.EquipComboBox->currentText();
+		QByteArray data = "Scene: " + sceneName.toUtf8() + "\n";
+		data += "Equip: " + equipName.toUtf8() + "\n";
+		consoleMaterielle->sendData(data);
+
+		// Attendre un court instant avant d'envoyer les données des champs
+		QTimer::singleShot(500, this, [this]() {
+			// Envoyer les données des champs à l'Arduino
+			if (!m_champNames.isEmpty()) {
+				QByteArray champData = "Champ: " + m_champNames.at(m_currentChampIndex).toUtf8() + "\n";
+				consoleMaterielle->sendData(champData);
+			}
+			});
 	}
 	else {
 		qDebug() << "Erreur lors de l'exécution de la requête : " << query.lastError();
+		// Envoyer un message d'erreur à l'Arduino si nécessaire
 	}
 }
+
 
 
 void DMXProject::saveSceneEquipmentData(int idScene) {
@@ -1108,46 +1141,56 @@ void DMXProject::onValidSceneEquipButtonClickedArduino() {
 }
 
 void DMXProject::onValidateCanalButtonClicked() {
-	// Vérifier si il y a d'autres champs à traiter
 	if (m_currentChampIndex < m_champNumbers.count() - 1) {
-		// Passer au champ suivant
 		m_currentChampIndex++;
-
-		// Afficher le nom du champ courant dans le QLabel
 		ui.valeurAfficheLabel->setText(m_champNames.at(m_currentChampIndex));
+
+		// Envoyer le nom du champ suivant à l'Arduino
+		QByteArray champData = m_champNames.at(m_currentChampIndex).toUtf8();
+		champData.append("\n");
+		consoleMaterielle->sendData(champData);
 	}
 	else {
-		// Tous les champs ont été traités, enregistrer les valeurs dans la table 'canaux'
 		QString sceneName = ui.SceneComboBox->currentText();
-
-		// Vérifier si une scène est sélectionnée
-		if (sceneName != -1) {
-			// Récupérer l'ID de la scène sélectionnée à partir de vos données de scène
-			int sceneId = scene->getSceneId(sceneName); 
-
-			// Récupérer l'ID de l'équipement sélectionné à partir de vos données d'équipement
+		if (!sceneName.isEmpty()) {
+			int sceneId = scene->getSceneId(sceneName);
 			QString equipName = ui.EquipComboBox->currentText();
-
-			int equipId = equipement->getEquipmentId(equipName); 
-
-			// Enregistrer les valeurs des champs dans la table 'canaux'
+			int equipId = equipement->getEquipmentId(equipName);
 			saveSceneEquipmentData(sceneId);
+
+			// Envoyer un message de confirmation à l'Arduino
+			QString message = "Scene data saved for scene: " + sceneName + "\n";
+			consoleMaterielle->sendData(message.toUtf8());
 		}
 		else {
-			// Aucune scène sélectionnée, afficher un message d'erreur ou effectuer d'autres actions de suivi
+			// Envoyer un message d'erreur à l'Arduino
+			QString message = "No scene selected\n";
+			consoleMaterielle->sendData(message.toUtf8());
 		}
 	}
 }
 
 void DMXProject::updateChampSliderValue(int value) {
-    if (m_currentChampIndex >= 0 && m_currentChampIndex < m_champSliderValues.count()) {
-        m_champSliderValues[m_currentChampIndex] = value;
-    }
+	if (m_currentChampIndex >= 0 && m_currentChampIndex < m_champSliderValues.count()) {
+		m_champSliderValues[m_currentChampIndex] = value;
+
+		// Envoyer les données du champ et la valeur à l'Arduino
+		QString champName = m_champNames.at(m_currentChampIndex);
+		QString message = "Champ: " + champName + "\nValue: " + QString::number(value) + "\n";
+		consoleMaterielle->sendData(message.toUtf8());
+	}
 }
+
+
 
 void DMXProject::onValidateButtonPressed() {
 	onValidateCanalButtonClicked();
+
+	// Envoyer un message de validation à l'Arduino
+	QString message = "Canal validation complete\n";
+	consoleMaterielle->sendData(message.toUtf8());
 }
+
 
 void DMXProject::gererScenes() {
 	// Supprimer tous les widgets existants dans le layout
