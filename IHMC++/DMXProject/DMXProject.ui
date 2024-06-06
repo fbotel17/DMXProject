@@ -558,7 +558,7 @@
        <widget class="QPushButton" name="ValidSceneEquipButton">
         <property name="geometry">
          <rect>
-          <x>960</x>
+          <x>1030</x>
           <y>40</y>
           <width>93</width>
           <height>28</height>
@@ -619,6 +619,19 @@
          </item>
         </layout>
        </widget>
+       <widget class="QCheckBox" name="checkBoxEquip">
+        <property name="geometry">
+         <rect>
+          <x>900</x>
+          <y>40</y>
+          <width>83</width>
+          <height>161</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>CheckBox</string>
+        </property>
+       </widget>
       </widget>
       <widget class="QWidget" name="page_10">
        <widget class="QWidget" name="verticalLayoutWidget_3">
@@ -643,7 +656,7 @@
      <x>0</x>
      <y>0</y>
      <width>1432</width>
-     <height>21</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuChoisir">

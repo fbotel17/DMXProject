@@ -35,6 +35,7 @@ public:
 
 	void fillSceneComboBox2();
 	void fillEquipComboBox();
+	void fillEquipCheckBoxes();
 	void showEquipmentFields(int equipIndex);
 
 	void fetchEquipmentChampData(int equipId);
