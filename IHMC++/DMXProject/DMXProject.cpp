@@ -1455,6 +1455,19 @@ void DMXProject::selectNextScene() {
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 void DMXProject::confirmSelection()
 {
 	// Action à définir pour la confirmation de sélection
