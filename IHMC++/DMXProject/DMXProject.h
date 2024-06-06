@@ -34,7 +34,6 @@ public:
 	void Gerer_un_equipement();
 
 	void fillSceneComboBox2();
-	void fillEquipComboBox();
 	void fillEquipCheckBoxes();
 	void showEquipmentFields(int equipIndex);
 

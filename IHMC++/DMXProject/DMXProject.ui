@@ -519,7 +519,7 @@
          </rect>
         </property>
         <property name="text">
-         <string>Choisir une scene</string>
+         <string>Choisir une scene :</string>
         </property>
        </widget>
        <widget class="QComboBox" name="SceneComboBox">
@@ -542,17 +542,7 @@
          </rect>
         </property>
         <property name="text">
-         <string>Choisir un equipement</string>
-        </property>
-       </widget>
-       <widget class="QComboBox" name="EquipComboBox">
-        <property name="geometry">
-         <rect>
-          <x>730</x>
-          <y>40</y>
-          <width>131</width>
-          <height>22</height>
-         </rect>
+         <string>Choisir un equipement :</string>
         </property>
        </widget>
        <widget class="QPushButton" name="ValidSceneEquipButton">
@@ -622,14 +612,40 @@
        <widget class="QCheckBox" name="checkBoxEquip">
         <property name="geometry">
          <rect>
-          <x>900</x>
-          <y>40</y>
+          <x>710</x>
+          <y>20</y>
           <width>83</width>
           <height>161</height>
          </rect>
         </property>
         <property name="text">
-         <string>CheckBox</string>
+         <string/>
+        </property>
+       </widget>
+       <widget class="QLabel" name="nomEquip">
+        <property name="geometry">
+         <rect>
+          <x>100</x>
+          <y>460</y>
+          <width>141</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Nom de l'equipement :</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="afficheEquip">
+        <property name="geometry">
+         <rect>
+          <x>250</x>
+          <y>460</y>
+          <width>111</width>
+          <height>16</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string/>
         </property>
        </widget>
       </widget>

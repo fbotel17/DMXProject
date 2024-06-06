@@ -89,7 +89,6 @@ DMXProject::DMXProject(QWidget* parent) : QMainWindow(parent) {
 	afficherScenesCheckbox();
 	Gerer_un_equipement();
 	fillSceneComboBox2();
-	fillEquipComboBox();
 	fillEquipCheckBoxes();
 	gererScenes(); 
 	connect(ui.testSceneButton, &QPushButton::clicked, this, &DMXProject::testScene);
@@ -970,20 +969,6 @@ void DMXProject::fillSceneComboBox2() {
 }
 
 
-
-void DMXProject::fillEquipComboBox() {
-	Equipement equip;
-	QList<Equipement> equips = equip.getAllEquipements();
-	foreach(const Equipement & e, equips) {
-		ui.EquipComboBox->addItem(e.getNom());
-	}
-
-	// Envoyer un message à l'Arduino
-	QString message = "Equipments loaded\n";
-	consoleMaterielle->sendData(message.toUtf8());
-}
-
-
 void DMXProject::fillEquipCheckBoxes() {
 	// Vider le layout initial de checkBoxEquip
 	QLayout* oldLayout = ui.checkBoxEquip->layout();
@@ -1040,6 +1025,19 @@ void DMXProject::onValidSceneEquipButtonClickedArduino() {
 		}
 
 		if (!selectedEquipIds.isEmpty()) {
+			// Récupérer le nom du premier équipement sélectionné
+			int firstEquipId = selectedEquipIds.first(); // Peut-être que vous voulez modifier cette logique si vous avez une priorité spécifique
+			QSqlQuery query;
+			query.prepare("SELECT nom FROM equipement WHERE id = ?");
+			query.addBindValue(firstEquipId);
+			if (query.exec() && query.next()) {
+				QString equipName = query.value(0).toString();
+				ui.afficheEquip->setText("Équipement en cours : " + equipName);
+			}
+			else {
+				qDebug() << "Aucun équipement trouvé pour l'ID : " << firstEquipId;
+			}
+
 			m_champNames.clear();
 			m_champNumbers.clear();
 			m_champSliderValues.clear();
@@ -1053,6 +1051,9 @@ void DMXProject::onValidSceneEquipButtonClickedArduino() {
 			if (!m_champNames.isEmpty()) {
 				ui.valeurAfficheLabel->setText(m_champNames.at(m_currentChampIndex));
 			}
+
+			// Réactiver le bouton de validation
+			ui.validateCanalButton->setEnabled(true);
 		}
 		else {
 			// Aucun équipement sélectionné
@@ -1067,27 +1068,47 @@ void DMXProject::onValidSceneEquipButtonClickedArduino() {
 
 
 
+
+
 void DMXProject::fetchEquipmentChampData(int equipId) {
+
 	QSqlQuery query;
-	query.prepare("SELECT champ.nom, champ.idNumCanal "
+	query.prepare("SELECT nom FROM equipement WHERE id = ?");
+	query.addBindValue(equipId);
+
+	if (query.exec()) {
+		if (query.next()) {
+			QString equipName = query.value(0).toString();
+			ui.afficheEquip->setText(equipName);
+		}
+		else {
+			qDebug() << "Aucun équipement trouvé pour l'ID : " << equipId;
+		}
+	}
+	else {
+		qDebug() << "Erreur lors de la récupération du nom de l'équipement : " << query.lastError();
+	}
+
+	QSqlQuery query2;
+	query2.prepare("SELECT champ.nom, champ.idNumCanal "
 		"FROM champ "
 		"JOIN equipement ON champ.idEquip = equipement.id "
 		"WHERE equipement.id = ? "
 		"ORDER BY champ.idNumCanal");
-	query.addBindValue(equipId);
+	query2.addBindValue(equipId);
 
-	if (query.exec()) {
+	if (query2.exec()) {
 		// Ne pas réinitialiser m_champNames, m_champNumbers et m_champSliderValues ici
 		// Car nous traitons plusieurs équipements
 
-		while (query.next()) {
-			m_champNames.append(query.value(0).toString());
-			m_champNumbers.append(query.value(1).toInt());
+		while (query2.next()) {
+			m_champNames.append(query2.value(0).toString());
+			m_champNumbers.append(query2.value(1).toInt());
 			m_champSliderValues.append(0);  // Initialiser avec zéro pour chaque champ
 		}
 	}
 	else {
-		qDebug() << "Erreur lors de l'exécution de la requête : " << query.lastError();
+		qDebug() << "Erreur lors de l'exécution de la requête : " << query2.lastError();
 	}
 
 	// m_currentChampIndex = 0; // Ne pas réinitialiser ici
@@ -1098,6 +1119,7 @@ void DMXProject::fetchEquipmentChampData(int equipId) {
 
 
 void DMXProject::saveSceneEquipmentData(int idScene) {
+	// Vérifier si des canaux existent déjà pour cette scène
 	QSqlQuery checkCanauxQuery;
 	checkCanauxQuery.prepare("SELECT COUNT(*) FROM canaux WHERE idScene = :idScene");
 	checkCanauxQuery.bindValue(":idScene", idScene);
@@ -1107,12 +1129,14 @@ void DMXProject::saveSceneEquipmentData(int idScene) {
 	}
 	int countCanaux = checkCanauxQuery.value(0).toInt();
 
+	// Si des canaux existent déjà, demander confirmation à l'utilisateur
 	if (countCanaux > 0) {
 		QMessageBox msgBox;
 		msgBox.setText("La scène sélectionnée possède déjà une configuration. Voulez-vous la supprimer ?");
 		msgBox.setStandardButtons(QMessageBox::Cancel | QMessageBox::Ok);
 		int ret = msgBox.exec();
 		if (ret == QMessageBox::Ok) {
+			// Supprimer les canaux existants
 			QSqlQuery deleteQuery;
 			deleteQuery.prepare("DELETE FROM canaux WHERE idScene = :idScene");
 			deleteQuery.bindValue(":idScene", idScene);
@@ -1122,10 +1146,12 @@ void DMXProject::saveSceneEquipmentData(int idScene) {
 			}
 		}
 		else {
+			// Annuler l'opération
 			return;
 		}
 	}
 
+	// Enregistrer les nouvelles valeurs de canal pour la scène
 	QSqlQuery insertQuery;
 	insertQuery.prepare("INSERT INTO canaux (idScene, numCanal, valeur) VALUES (:idScene, :numCanal, :valeur)");
 
@@ -1139,7 +1165,16 @@ void DMXProject::saveSceneEquipmentData(int idScene) {
 			return;
 		}
 	}
+
+	// Réinitialiser les labels et désactiver le bouton de validation après l'enregistrement réussi
+	ui.nomSceneAfficheLabel->clear();
+	ui.valeurAfficheLabel->clear();
+	ui.validateCanalButton->setEnabled(false);
+
+	// Rediriger vers la page précédente après l'enregistrement réussi (si nécessaire)
+	// ...
 }
+
 
 
 
