@@ -770,10 +770,12 @@ void DMXProject::handleModifyButtonClicked(int idEquipement, const QString& nomE
 
 	QLabel* labelAdresse = new QLabel("Adresse :", &dialog);
 	QLineEdit* lineEditAdresse = new QLineEdit(adresseEquipement, &dialog);
+	lineEditAdresse->setEnabled(false); // Désactiver et griser la zone de saisie de l'adresse
 
 	QLabel* labelNbCanal = new QLabel("Nombre de canaux :", &dialog);
 	QSpinBox* spinBoxNbCanal = new QSpinBox(&dialog);
 	spinBoxNbCanal->setValue(nbCanalEquipement);
+	spinBoxNbCanal->setEnabled(false); // Désactiver et griser la zone de saisie du nombre de canaux
 
 	// Création du bouton de confirmation
 	QPushButton* buttonConfirm = new QPushButton("Confirmer", &dialog);
@@ -802,9 +804,9 @@ void DMXProject::handleModifyButtonClicked(int idEquipement, const QString& nomE
 		equipement->afficherEquipements(ui.verticalLayoutEquipements);
 
 		Gerer_un_equipement();
-
 	}
 }
+
 
 
 void DMXProject::saveSettings() {
