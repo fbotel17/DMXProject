@@ -1113,32 +1113,21 @@ void DMXProject::saveSceneEquipmentData(int idScene) {
 }
 
 
-void DMXProject::onValidSceneEquipButtonClickedArduino() {
+void DMXProject::onValidSceneEquipButtonClicked() {
 	// Récupérer l'index de la scène sélectionnée dans le QComboBox
-	int sceneIndex = ui.SceneComboBox->currentIndex();
+	int index = ui.SceneComboBox->currentIndex();
 
 	// Vérifier si une scène est sélectionnée
-	if (sceneIndex != -1) {
-		// Récupérer l'index de l'équipement sélectionné dans le QComboBox
-		int equipIndex = ui.EquipComboBox->currentIndex();
+	if (index != -1) {
+		// Récupérer le nom de la scène sélectionnée
+		QString sceneName = ui.SceneComboBox->currentText();
 
-		// Vérifier si un équipement est sélectionné
-		if (equipIndex != -1) {
-			// Récupérer l'ID de l'équipement sélectionné à partir de vos données d'équipement
-
-			QString equipName = ui.EquipComboBox->currentText();
-
-			int equipId = equipement->getEquipmentId(equipName);
-
-			// Récupérer les noms et les numéros de canal des champs de l'équipement sélectionné
-			fetchEquipmentChampData(equipId);
-		}
-		else {
-			// Aucun équipement sélectionné, afficher un message d'erreur ou effectuer d'autres actions de suivi
-		}
+		// Afficher le nom de la scène dans le QLabel
+		ui.nomSceneAfficheLabel->setText(sceneName);
 	}
 	else {
-		// Aucune scène sélectionnée, afficher un message d'erreur ou effectuer d'autres actions de suivi
+		// Aucune scène sélectionnée, afficher un message d'erreur ou laisser le QLabel vide
+		ui.nomSceneAfficheLabel->setText("");
 	}
 }
 
