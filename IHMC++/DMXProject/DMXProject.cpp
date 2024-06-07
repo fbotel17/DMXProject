@@ -963,9 +963,7 @@ void DMXProject::fillSceneComboBox2() {
 		ui.SceneComboBox->addItem(s.getNom());
 	}
 
-	// Envoyer un message à l'Arduino
-	QString message = "Scenes loaded\n";
-	consoleMaterielle->sendData(message.toUtf8());
+	
 }
 
 
@@ -1026,13 +1024,13 @@ void DMXProject::onValidSceneEquipButtonClickedArduino() {
 
 		if (!selectedEquipIds.isEmpty()) {
 			// Récupérer le nom du premier équipement sélectionné
-			int firstEquipId = selectedEquipIds.first(); // Peut-être que vous voulez modifier cette logique si vous avez une priorité spécifique
+			int firstEquipId = selectedEquipIds.first();
 			QSqlQuery query;
 			query.prepare("SELECT nom FROM equipement WHERE id = ?");
 			query.addBindValue(firstEquipId);
 			if (query.exec() && query.next()) {
 				QString equipName = query.value(0).toString();
-				ui.afficheEquip->setText("Équipement en cours : " + equipName);
+				ui.afficheEquip->setText(equipName);
 			}
 			else {
 				qDebug() << "Aucun équipement trouvé pour l'ID : " << firstEquipId;
@@ -1041,6 +1039,7 @@ void DMXProject::onValidSceneEquipButtonClickedArduino() {
 			m_champNames.clear();
 			m_champNumbers.clear();
 			m_champSliderValues.clear();
+			m_equipmentNames.clear(); // Réinitialiser la liste des noms d'équipements
 
 			foreach(int equipId, selectedEquipIds) {
 				fetchEquipmentChampData(equipId);
@@ -1050,6 +1049,7 @@ void DMXProject::onValidSceneEquipButtonClickedArduino() {
 
 			if (!m_champNames.isEmpty()) {
 				ui.valeurAfficheLabel->setText(m_champNames.at(m_currentChampIndex));
+				updateEquipmentLabel(); // Mettre à jour le label avec le nom de l'équipement
 			}
 
 			// Réactiver le bouton de validation
@@ -1066,10 +1066,6 @@ void DMXProject::onValidSceneEquipButtonClickedArduino() {
 
 
 
-
-
-
-
 void DMXProject::fetchEquipmentChampData(int equipId) {
 
 	QSqlQuery query;
@@ -1079,6 +1075,7 @@ void DMXProject::fetchEquipmentChampData(int equipId) {
 	if (query.exec()) {
 		if (query.next()) {
 			QString equipName = query.value(0).toString();
+			m_equipmentNames.append(equipName); // Ajouter le nom de l'équipement à la liste
 			ui.afficheEquip->setText(equipName);
 		}
 		else {
@@ -1169,6 +1166,7 @@ void DMXProject::saveSceneEquipmentData(int idScene) {
 	// Réinitialiser les labels et désactiver le bouton de validation après l'enregistrement réussi
 	ui.nomSceneAfficheLabel->clear();
 	ui.valeurAfficheLabel->clear();
+	ui.afficheEquip->clear();
 	ui.validateCanalButton->setEnabled(false);
 
 	// Rediriger vers la page précédente après l'enregistrement réussi (si nécessaire)
@@ -1199,10 +1197,9 @@ void DMXProject::onValidSceneEquipButtonClicked() {
 void DMXProject::onValidateCanalButtonClicked() {
 	// Vérifier si il y a d'autres champs à traiter
 	if (m_currentChampIndex < m_champNames.count() - 1) {
-		// Passer au champ suivant
 		m_currentChampIndex++;
-		// Afficher le nom du champ courant dans le QLabel
 		ui.valeurAfficheLabel->setText(m_champNames.at(m_currentChampIndex));
+		updateEquipmentLabel(); // Mettre à jour le label avec le nom de l'équipement
 	}
 	else {
 		// Tous les champs ont été traités, enregistrer les valeurs dans la table 'canaux'
@@ -1223,13 +1220,14 @@ void DMXProject::onValidateCanalButtonClicked() {
 }
 
 
+
 void DMXProject::updateChampSliderValue(int value) {
 	if (m_currentChampIndex >= 0 && m_currentChampIndex < m_champSliderValues.count()) {
 		m_champSliderValues[m_currentChampIndex] = value;
 
 		// Envoyer les données du champ et la valeur à l'Arduino
 		QString champName = m_champNames.at(m_currentChampIndex);
-		QString message = "Champ: " + champName + "\nValue: " + QString::number(value) + "\n";
+		QString message = champName + " : " + QString::number(value) + "\n";
 		consoleMaterielle->sendData(message.toUtf8());
 	}
 }
@@ -1244,6 +1242,11 @@ void DMXProject::onValidateButtonPressed() {
 	consoleMaterielle->sendData(message.toUtf8());
 }
 
+void DMXProject::updateEquipmentLabel() {
+	if (m_currentChampIndex >= 0 && m_currentChampIndex < m_equipmentNames.size()) {
+		ui.afficheEquip->setText(m_equipmentNames.at(m_currentChampIndex));
+	}
+}
 
 void DMXProject::gererScenes() {
 	// Supprimer tous les widgets existants dans le layout

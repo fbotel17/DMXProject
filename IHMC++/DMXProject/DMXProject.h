@@ -36,6 +36,7 @@ public:
 	void fillSceneComboBox2();
 	void fillEquipCheckBoxes();
 	void showEquipmentFields(int equipIndex);
+	void updateEquipmentLabel();
 
 	void fetchEquipmentChampData(int equipId);
 	void saveSceneEquipmentData(int sceneId);
@@ -106,6 +107,8 @@ private:
 	int m_currentChampIndex;
 	QList<int> m_champSliderValues;
 
+	QStringList m_equipmentNames;
+	int m_currentEquipId;
 
 
 };
