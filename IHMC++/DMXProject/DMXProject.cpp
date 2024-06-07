@@ -1067,7 +1067,6 @@ void DMXProject::onValidSceneEquipButtonClickedArduino() {
 
 
 void DMXProject::fetchEquipmentChampData(int equipId) {
-
 	QSqlQuery query;
 	query.prepare("SELECT nom FROM equipement WHERE id = ?");
 	query.addBindValue(equipId);
@@ -1076,7 +1075,6 @@ void DMXProject::fetchEquipmentChampData(int equipId) {
 		if (query.next()) {
 			QString equipName = query.value(0).toString();
 			m_equipmentNames.append(equipName); // Ajouter le nom de l'équipement à la liste
-			ui.afficheEquip->setText(equipName);
 		}
 		else {
 			qDebug() << "Aucun équipement trouvé pour l'ID : " << equipId;
@@ -1094,23 +1092,23 @@ void DMXProject::fetchEquipmentChampData(int equipId) {
 		"ORDER BY champ.idNumCanal");
 	query2.addBindValue(equipId);
 
-	if (query2.exec()) {
-		// Ne pas réinitialiser m_champNames, m_champNumbers et m_champSliderValues ici
-		// Car nous traitons plusieurs équipements
+	int champCount = 0;  // Compter le nombre de champs pour cet équipement
 
+	if (query2.exec()) {
 		while (query2.next()) {
 			m_champNames.append(query2.value(0).toString());
 			m_champNumbers.append(query2.value(1).toInt());
 			m_champSliderValues.append(0);  // Initialiser avec zéro pour chaque champ
+			champCount++;
 		}
 	}
 	else {
 		qDebug() << "Erreur lors de l'exécution de la requête : " << query2.lastError();
 	}
 
-	// m_currentChampIndex = 0; // Ne pas réinitialiser ici
-	// Afficher le nom du premier champ dans le QLabel si ce n'est pas déjà fait ailleurs
+	m_champCounts.append(champCount);  // Ajouter le nombre de champs pour cet équipement
 }
+
 
 
 
@@ -1243,8 +1241,13 @@ void DMXProject::onValidateButtonPressed() {
 }
 
 void DMXProject::updateEquipmentLabel() {
-	if (m_currentChampIndex >= 0 && m_currentChampIndex < m_equipmentNames.size()) {
-		ui.afficheEquip->setText(m_equipmentNames.at(m_currentChampIndex));
+	int sum = 0;
+	for (int i = 0; i < m_champCounts.size(); ++i) {
+		sum += m_champCounts[i];
+		if (m_currentChampIndex < sum) {
+			ui.afficheEquip->setText(m_equipmentNames.at(i));
+			break;
+		}
 	}
 }
 

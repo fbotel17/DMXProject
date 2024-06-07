@@ -109,6 +109,7 @@ private:
 
 	QStringList m_equipmentNames;
 	int m_currentEquipId;
+	QList<int> m_champCounts;
 
 
 };
