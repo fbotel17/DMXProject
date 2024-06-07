@@ -976,6 +976,7 @@ void DMXProject::fillSceneComboBox2() {
 void DMXProject::fillEquipCheckBoxes() {
 	// Vider le layout initial de checkBoxEquip
 	QLayout* layout = ui.checkBoxEquip->layout();
+	//QLayout* layout = ui.checkBoxEquip->layout();
 	if (layout != nullptr) {
 		QLayoutItem* item;
 		while ((item = layout->takeAt(0)) != nullptr) {

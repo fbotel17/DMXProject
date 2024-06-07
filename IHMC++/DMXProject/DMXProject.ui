@@ -609,19 +609,6 @@
          </item>
         </layout>
        </widget>
-       <widget class="QCheckBox" name="checkBoxEquip">
-        <property name="geometry">
-         <rect>
-          <x>710</x>
-          <y>20</y>
-          <width>83</width>
-          <height>161</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
        <widget class="QLabel" name="nomEquip">
         <property name="geometry">
          <rect>
@@ -646,6 +633,16 @@
         </property>
         <property name="text">
          <string/>
+        </property>
+       </widget>
+       <widget class="QWidget" name="checkBoxEquip" native="true">
+        <property name="geometry">
+         <rect>
+          <x>680</x>
+          <y>20</y>
+          <width>141</width>
+          <height>271</height>
+         </rect>
         </property>
        </widget>
       </widget>
