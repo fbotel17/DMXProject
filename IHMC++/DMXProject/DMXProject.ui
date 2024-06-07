@@ -681,7 +681,6 @@
     </property>
     <addaction name="actionSupprimer_un_equipement"/>
     <addaction name="actionGerer_une_scene"/>
-    <addaction name="actionCreer_une_sc_ne"/>
     <addaction name="actionConfigurer_une_sc_ne_2"/>
     <addaction name="actionTester_une_scene"/>
     <addaction name="actionArduino"/>

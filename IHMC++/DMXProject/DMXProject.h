@@ -50,7 +50,7 @@ public:
 	void selectNextScene();
 	void confirmSelection();
 	void validateSelection();
-	
+	QString equip;
 
 
 public slots:
