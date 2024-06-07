@@ -26,10 +26,10 @@ void Equipement::insertEquipement(const QString& nomEquipement, const QString& a
     query.bindValue(":nbCanal", nbCanaux);
 
     if (query.exec()) {
-        qDebug() << "Équipement inséré avec succès!";
+        qDebug() << "Equipement insere avec succes!";
     }
     else {
-        qDebug() << "Erreur lors de l'insertion de l'équipement:" << query.lastError().text();
+        qDebug() << "Erreur lors de l'insertion de l'equipement:" << query.lastError().text();
     }
 }
 
@@ -38,12 +38,12 @@ void Equipement::updateEquipement(int idEquipement, const QString& nomEquipement
     // Connexion à la base de données
     QSqlDatabase db = QSqlDatabase::database();
     if (!db.isValid()) {
-        qDebug() << "La base de données n'est pas valide.";
+        qDebug() << "La base de donnees n'est pas valide.";
         return;
     }
 
     if (!db.isOpen()) {
-        qDebug() << "La base de données n'est pas ouverte.";
+        qDebug() << "La base de donnees n'est pas ouverte.";
         return;
     }
 
@@ -58,10 +58,10 @@ void Equipement::updateEquipement(int idEquipement, const QString& nomEquipement
     // Exécution de la requête
     if (query.exec()) {
         db.commit(); // Valider les modifications dans la base de données
-        qDebug() << "Équipement mis à jour avec succès dans la base de données.";
+        qDebug() << "Equipement mis a jour avec succes dans la base de donnees.";
     }
     else {
-        qDebug() << "Erreur lors de la mise à jour de l'équipement :" << query.lastError().text();
+        qDebug() << "Erreur lors de la mise a jour de l'equipement :" << query.lastError().text();
     }
 }
 
@@ -96,7 +96,7 @@ void Equipement::supprimerEquipement(int idEquipement, DMXProject* dmx)
     queryDeleteEquipement.prepare("DELETE FROM equipement WHERE id = :id");
     queryDeleteEquipement.bindValue(":id", idEquipement);
     if (!queryDeleteEquipement.exec()) {
-        qDebug() << "Erreur lors de la suppression de l'équipement :" << queryDeleteEquipement.lastError().text();
+        qDebug() << "Erreur lors de la suppression de l'equipement :" << queryDeleteEquipement.lastError().text();
         // En cas d'erreur, annuler la transaction et sortir de la fonction
         QSqlDatabase::database().rollback();
         return;
@@ -148,7 +148,7 @@ void Equipement::afficherEquipements(QVBoxLayout* mainLayoutEquipements)
     // Récupérer le layout pour les équipements
     QVBoxLayout* mainLayout = qobject_cast<QVBoxLayout*>(mainLayoutEquipements->layout());
     if (!mainLayout) {
-        qDebug() << "Erreur : le layout des équipements est invalide.";
+        qDebug() << "Erreur : le layout des equipements est invalide.";
         return;
     }
 
@@ -185,7 +185,7 @@ int Equipement::getEquipmentId(const QString& equipmentName)
     }
     else
     {
-        qDebug() << "Erreur lors de la récupération de l'ID de l'équipement : " << query.lastError().text();
+        qDebug() << "Erreur lors de la recuperation de l'ID de l'equipement : " << query.lastError().text();
         return -1;
     }
 }
@@ -232,7 +232,7 @@ int Equipement::getNbCanaux(const QString& equipmentName) const
     }
     else
     {
-        qDebug() << "Erreur lors de la récupération de l'ID de l'équipement : " << query.lastError().text();
+        qDebug() << "Erreur lors de la recupération de l'ID de l'equipement : " << query.lastError().text();
         return -1;
     }
 }

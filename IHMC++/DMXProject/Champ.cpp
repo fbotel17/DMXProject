@@ -65,10 +65,10 @@ void Champ::insertChamp(int idEquip, int idNumCanal, const QString& nom)
     query.bindValue(":nom", nom);
 
     if (query.exec()) {
-        qDebug() << "Champ inséré avec succès!";
+        qDebug() << "Champ insere avec succes!";
     }
     else {
-        qDebug() << "Erreur lors de l'insertion duchamp:" << query.lastError().text();
+        qDebug() << "Erreur lors de l'insertion du champ:" << query.lastError().text();
     }
 }
 
@@ -82,7 +82,7 @@ void Champ::updateChamp(int id, int idEquip, int idNumCanal, const QString& nom)
     query.bindValue(":nom", nom);
 
     if (!query.exec()) {
-        qDebug() << "Erreur lors de la mise à jour du champ : " << query.lastError().text();
+        qDebug() << "Erreur lors de la mise a jour du champ : " << query.lastError().text();
     }
 }
 
@@ -132,7 +132,7 @@ Champ Champ::getChampById(int id)
         champ = Champ(id, idEquip, idNumCanal, nom);
     }
     else {
-        qDebug() << "Erreur lors de la récupération du champ : " << query.lastError().text();
+        qDebug() << "Erreur lors de la recuperation du champ : " << query.lastError().text();
     }
 
     return champ;
@@ -157,7 +157,7 @@ QList<Champ> Champ::getChampsByEquipmentId(int idEquip)
         }
     }
     else {
-        qDebug() << "Erreur lors de la récupération des champs : " << query.lastError().text();
+        qDebug() << "Erreur lors de la recuperation des champs : " << query.lastError().text();
     }
 
     return champs;

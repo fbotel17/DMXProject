@@ -66,12 +66,12 @@ void Canal::insertCanal(int idScene, const QList<QPair<int, int>>& channelData) 
         if (checkQuery.exec() && checkQuery.next()) {
             int count = checkQuery.value(0).toInt();
             if (count == 0) {
-                qDebug() << "Le numéro de canal" << numCanal << "n'existe pas dans la table champ.";
+                qDebug() << "Le numero de canal" << numCanal << "n'existe pas dans la table champ.";
                 continue; // Ignorer cette insertion
             }
         }
         else {
-            qDebug() << "Erreur lors de la vérification de l'existence du numéro de canal" << numCanal << ":" << checkQuery.lastError().text();
+            qDebug() << "Erreur lors de la verification de l'existence du numero de canal" << numCanal << ":" << checkQuery.lastError().text();
             continue; // Ignorer cette insertion
         }
 
@@ -79,7 +79,7 @@ void Canal::insertCanal(int idScene, const QList<QPair<int, int>>& channelData) 
         query.bindValue(":valeur", valeur);
 
         if (!query.exec()) {
-            qDebug() << "Erreur lors de l'insertion des données dans la table 'canaux' : " << query.lastError().text();
+            qDebug() << "Erreur lors de l'insertion des donnees dans la table 'canaux' : " << query.lastError().text();
         }
     }
 }

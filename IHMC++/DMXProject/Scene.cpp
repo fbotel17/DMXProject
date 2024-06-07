@@ -33,10 +33,10 @@ void Scene::insertScene(const QString& nomScene)
     query.bindValue(":nom", nomScene);
 
     if (query.exec()) {
-        qDebug() << "Scène insérée avec succès!";
+        qDebug() << "Scene inseree avec succes!";
     }
     else {
-        qDebug() << "Erreur lors de l'insertion de la scène:" << query.lastError().text();
+        qDebug() << "Erreur lors de l'insertion de la scene:" << query.lastError().text();
     }
 }
 
@@ -48,10 +48,10 @@ void Scene::updateScene(const QString& oldNomScene, const QString& newNomScene)
     query.bindValue(":oldNom", oldNomScene);
 
     if (query.exec()) {
-        qDebug() << "Scène modifiée avec succès!";
+        qDebug() << "Scene modifiee avec succes!";
     }
     else {
-        qDebug() << "Erreur lors de la modification de la scène:" << query.lastError().text();
+        qDebug() << "Erreur lors de la modification de la scene:" << query.lastError().text();
     }
 }
 
@@ -95,7 +95,7 @@ int Scene::getSceneId(const QString& sceneName)
         return query.value(0).toInt();
     }
     else {
-        qDebug() << "Erreur lors de la récupération de l'ID de la scène : " << query.lastError().text();
+        qDebug() << "Erreur lors de la recuperation de l'ID de la scene : " << query.lastError().text();
         return -1;
     }
 }
