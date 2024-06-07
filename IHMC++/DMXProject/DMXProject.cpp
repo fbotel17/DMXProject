@@ -1544,3 +1544,12 @@ void DMXProject::validateSelection()
 	// Action à définir pour la validation de sélection
 	qDebug() << "Scene validated:" << ui.sceneComboBox->currentText();
 }
+
+void DMXProject::showEvent(QShowEvent* event)
+{
+	// Afficher la fenêtre en plein écran
+	this->showFullScreen();
+
+	// Appeler la méthode showEvent() de la classe de base
+	QMainWindow::showEvent(event);
+}

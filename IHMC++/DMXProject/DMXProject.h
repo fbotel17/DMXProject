@@ -10,6 +10,7 @@
 #include "Champ.h"
 #include "ConsoleController.h"
 #include "ConsoleMaterielle.h"
+#include <QShowEvent>
 
 class DMXProject : public QMainWindow
 {
@@ -51,6 +52,8 @@ public:
 	void confirmSelection();
 	void validateSelection();
 	QString equip;
+
+	void showEvent(QShowEvent* event);
 
 
 public slots:
