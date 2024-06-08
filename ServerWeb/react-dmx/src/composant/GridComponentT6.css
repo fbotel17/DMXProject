@@ -1,0 +1,72 @@
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 colonnes égales */
+    gap: 10px; /* Espacement entre les cellules */
+    max-width: 600px; /* Largeur maximale de la grille */
+    margin: 0 auto; /* Centrer la grille horizontalement */
+  }
+  
+  .grid-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f0f0f0; /* Couleur de fond de chaque cellule */
+    border: 1px solid #ccc; /* Bordure de chaque cellule */
+    padding: 20px; /* Espacement interne de chaque cellule */
+    font-size: 16px; /* Taille de la police */
+  }
+  
+  .grid-cell:hover {
+    background-color: #e0e0e0; /* Couleur de fond au survol */
+  }
+
+  .highlighted {
+    background-color: red !important;
+  }
+
+  .grid-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 colonnes égales */
+    gap: 10px; /* Espacement entre les cellules */
+    max-width: 600px; /* Largeur maximale de la grille */
+    margin: 0 auto; /* Centrer la grille horizontalement */
+  }
+  
+  .grid-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f0f0f0; /* Couleur de fond de chaque cellule */
+    border: 1px solid #ccc; /* Bordure de chaque cellule */
+    padding: 20px; /* Espacement interne de chaque cellule */
+    font-size: 16px; /* Taille de la police */
+  }
+  
+  .grid-cell:hover {
+    background-color: #e0e0e0; /* Couleur de fond au survol */
+  }
+
+  .scene-list-container {
+    margin: 20px;
+  }
+  
+  .scene-scroll-container {
+    max-height: 300px; /* Height of the scrollable area */
+    overflow-y: auto; /* Enable vertical scrolling */
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Two columns layout */
+    gap: 10px; /* Space between grid items */
+    width: 500px;
+  }
+  
+  .grid-cell.draggable {
+    cursor: grab;
+  }
+  
+  .grid-cell.draggable:active {
+    cursor: grabbing;
+  }
+  

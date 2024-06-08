@@ -1,0 +1,72 @@
+/* Thème */
+body {
+    background-color: #ecf0f1; /* Couleur de fond */
+    font-family: Arial, sans-serif; /* Police par défaut */
+}
+
+.container {
+    text-align: center;
+    margin-top: 50px; /* Espacement depuis le haut */
+}
+
+.form-container {
+    max-width: 400px; /* Largeur maximale du formulaire */
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); /* Ombre légère */
+}
+
+input[type="email"],
+input[type="password"],
+button[type="submit"] {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+}
+
+input[type="email"]:focus,
+input[type="password"]:focus {
+    border-color: #3498db; /* Couleur de bordure au focus */
+}
+
+button[type="submit"] {
+    background-color: #2c3e50; /* Couleur de fond */
+    color: #fff; /* Couleur du texte */
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button[type="submit"]:hover {
+    background-color: #34495e; /* Couleur de fond au survol */
+}
+
+.error-message {
+    color: #c0392b; /* Couleur du message d'erreur */
+    margin-top: 5px;
+}
+
+/* Animation de chargement */
+.loader {
+    border: 4px solid #f3f3f3; /* Couleur de la bordure */
+    border-top: 4px solid #3498db; /* Couleur de la bordure supérieure */
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite; /* Animation de rotation */
+    margin: 0 auto;
+    margin-top: 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
