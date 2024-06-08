@@ -1548,9 +1548,10 @@ void DMXProject::validateSelection()
 
 void DMXProject::showEvent(QShowEvent* event)
 {
-	// Afficher la fenêtre en plein écran
-	this->showFullScreen();
+	// Afficher la fenêtre maximisée
+	this->showMaximized();
 
 	// Appeler la méthode showEvent() de la classe de base
 	QMainWindow::showEvent(event);
 }
+
